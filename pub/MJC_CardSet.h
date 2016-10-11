@@ -4,6 +4,8 @@
 #include <map>
 #include "MJ_AnalyResult.h"
 
+#define DEBUG
+
 class MJC_CardSet
 {
 public:

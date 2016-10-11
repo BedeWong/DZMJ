@@ -1,6 +1,8 @@
 #ifndef MJ_ANALYRESULT_H
 #define MJ_ANALYRESULT_H
 
+#define DEBUG
+
 class MJC_CardSet;
 class MJ_AnalyResult
 {
