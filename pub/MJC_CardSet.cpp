@@ -87,18 +87,6 @@ MJC_CardSet::MJC_CardSet()
 
 void MJC_CardSet::init(MJC_CardSet::pCCARD _paiList, MJC_CardSet::CARD _wang)
 {
-    /*
-    CARD paiList[16];
-
-    CARD HuList[16];
-    CARD cGangList[8];
-    CARD cPengList[8];
-    CARD cChiList[16];
-
-    CARD gang[8];
-    CARD peng[8];
-    CARD chi[8];
-*/
     _g = 0;
     _p = 0;
     _c = 0;
@@ -375,6 +363,10 @@ int MJC_CardSet::cGang()
 
 int MJC_CardSet::analysis()
 {
+    if(this->paiCount != 1 || this->paiCount != 4 ||
+            this->paiCount != 10 || this->paiCount != 13)
+        return -1;
+
     typedef struct _node{
         typedef enum{
             W_ST, W_SL, W_DZ, W_EL, W_KZ, W_DAN
@@ -392,13 +384,13 @@ int MJC_CardSet::analysis()
     int pCount;//循环中用到的牌长度
 
     Node node;
-    std::stack<Node> STACK;
-
     Node::WHO whoFlg;
 
+    std::stack<Node> STACK;
+
+    //前期准备
     AnalyResults.clear();
     memset(&node, 0, sizeof(node));
-
     memcpy(node.pai, this->paiList, this->paiCount);
     node.count = this->paiCount;
     node.pos = 0;
@@ -624,7 +616,8 @@ int MJC_CardSet::analysis()
          *  剩下的就是单牌了
          */
         analy.dan_count = pCount;
-        memcpy(analy.dan, pai, pCount);
+        analy.dan_count && memcpy(analy.dan, pai, pCount);
+        analy.dan_count || memset(analy.dan, 0, 8);
 
         CARD allTing[16] = {0};
         int tingCount = 0;
@@ -645,6 +638,7 @@ int MJC_CardSet::analysis()
                 }
             }
         }
+
     }
 
     return 0;
@@ -682,9 +676,37 @@ int MJC_CardSet::Gang(MJC_CardSet::CARD card)
     return 0;
 }
 
-int MJC_CardSet::Hu(CARD card)
+bool MJC_CardSet::Hu(CARD card)
 {
-    return 0;
+    for(auto it : AnalyResults)
+    {
+        if(it.first == card)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+int MJC_CardSet::copy_chiList(MJ_AnalyResult *to)
+{
+    to->c_count = this->_c;
+    memcpy(to->chi, this->chi, this->_c * 3);
+    return this->_c;
+}
+
+int MJC_CardSet::copy_pengList(MJ_AnalyResult *to)
+{
+    to->p_count = this->_p;
+    memcpy(to->peng, this->peng, this->_p);
+    return this->_p;
+}
+
+int MJC_CardSet::copy_gangList(MJ_AnalyResult *to)
+{
+    to->g_count = this->_g;
+    memcpy(to->gang, this->gang, this->_g);
+    return this->_g;
 }
 
 void MJC_CardSet::MJ_sort(typename MJC_CardSet::CARD *li, int len)

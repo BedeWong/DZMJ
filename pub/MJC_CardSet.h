@@ -67,14 +67,18 @@ public:
     int cChi() ;
     int cPeng() ;
     int cGang() ;
-    int analysis() ;
+    int analysis();
 
     int Chi(CARD card, CARD c[3]);
     int Peng(CARD card);
     int Gang(CARD card);
-    int Hu(CARD card);
+    bool Hu(CARD card);
 
     int getChiList(CARD card, CARD (*res)[3]);
+
+    int copy_chiList(MJ_AnalyResult *);
+    int copy_pengList(MJ_AnalyResult *);
+    int copy_gangList(MJ_AnalyResult *);
 
     void MJ_sort(typename MJC_CardSet::CARD *a, int len);
 

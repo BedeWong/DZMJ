@@ -11,6 +11,15 @@ MJ_AnalyResult::MJ_AnalyResult()
     memset(this, 0, sizeof(MJ_AnalyResult));
 }
 
+MJ_AnalyResult::MJ_AnalyResult(MJC_CardSet &of)
+{
+    memset(this, 0, sizeof(MJ_AnalyResult));
+
+    of.copy_chiList(this);
+    of.copy_pengList(this);
+    of.copy_gangList(this);
+}
+
 MJ_AnalyResult::~MJ_AnalyResult()
 {
 
@@ -46,12 +55,16 @@ int MJ_AnalyResult::canHu(MJC_CardSet::CARD *ting)
             switch(w_count)
             {
             case 0:
-                if((dz_count >= 1 && dan_count==0) || dan_count==1)
+                if((dz_count== 1 && el_count+kz_count==1 && dan_count==0) || dan_count==1)
                 {
-                    forin_dz(dz, dz_count, ting, tCount, _w)
+           //         forin_dz(dz, dz_count, ting, tCount, _w)
                     forin_el(el, el_count, ting, tCount, _w)
                     forin_kz(kz, kz_count, ting, tCount,  _w)
                     forin_dan(dan, dan_count, ting, tCount, _w)
+                }
+                else if(dz_count>1)
+                {
+                    forin_dz(dz, dz_count, ting, tCount, _w)
                 }
                 break;
 
@@ -173,7 +186,113 @@ int MJ_AnalyResult::canHu(MJC_CardSet::CARD *ting)
                 }
                 break;
             }
-     return tCount;
+            return tCount;
+}
+
+int MJ_AnalyResult::addHu(MJ_AnalyResult::HU _hu)
+{
+    switch(_hu)
+    {
+        case HU_PingHu		:
+            break;
+        case HU_QiangGang 	:	fan |= HU_QiangGang;
+            break;
+        case HU_GangShangHua:   fan |= HU_GangShangHua;
+            break;
+        //    2番
+        case HU_ZiMo		:
+                                fan &= ~(HU_QiangGang | HU_QuanQiuYi);
+                                fan |= HU_ZiMo;
+            break;
+        case HU_MenQianQing	:
+                                if(fan & HU_ZiMo)	fan |= HU_MenQianQing;
+            break;
+        case HU_XiaoDao	 	:
+                                fan |= HU_XiaoDao;
+            break;
+        case HU_YouYiTao	:
+                                if ((fan & HU_YouLiangTao))
+                                {
+                                    //fan |= HU_YouYiTao;
+                                    break;
+                                }
+                                if (fan & HU_YouYiTao) {				//  有一套在有一套==?
+                                    fan |= HU_YouLiangTao;
+                                    break;
+                                }
+                                fan |= HU_YouYiTao;
+        case HU_QiaoQiDui	:
+                                fan |= HU_QiaoQiDui;
+            break;
+        case HU_ShiSanLang	:
+                                fan |= HU_ShiSanLang;
+            break;
+        case HU_YiTiaoLong	:
+                                fan |= HU_YiTiaoLong;
+            break;
+        case HU_HunYiSe		:
+                                fan |= HU_HunYiSe;
+            break;
+        case HU_PengpengHu	:
+                                fan |= HU_PengpengHu;
+            break;
+        case HU_SiGuiYi		:
+                                fan |= HU_SiGuiYi;
+            break;
+        case HU_QuanQiuYi	:
+                                fan |= HU_QuanQiuYi;
+            break;
+        case HU_DanWangZhua	:
+                                fan |= HU_DanWangZhua;
+            break;
+        case HU_WangGuiWei	:
+                                fan |= HU_WangGuiWei;
+            break;
+        //    4番
+        case HU_DaDao	 	:
+                                fan |= HU_DaDao;
+            break;
+        case HU_YouLiangTao	:
+                                fan &= ~HU_YouYiTao;
+                                fan |= HU_YouLiangTao;
+            break;
+        case HU_QiFengHui	:
+                                fan |= HU_QiFengHui;
+            break;
+        case HU_ShuangWangGuiWei:
+                                fan |= HU_ShuangWangGuiWei;
+            break;
+        case HU_DanWangZhuaWang	:
+                                fan &= ~HU_DanWangZhua;
+                                fan |= HU_DanWangZhuaWang;
+            break;
+        case HU_ShuangWangZhua	:
+                                fan |= HU_ShuangWangZhua;
+            break;
+        case HU_QingYiSe			:
+                                fan |= HU_QingYiSe;
+            break;
+        ///    8番
+        case HU_ShuangWangZhuaWang	:
+                                fan &= ~HU_ShuangWangZhua;
+                                fan |= HU_ShuangWangZhuaWang;
+            break;
+        case HU_SanWangGuiWei		:
+                                fan |= HU_SanWangGuiWei;
+            break;
+        /////  16 番
+        case HU_SiWangGuiWei		:
+                                fan |= HU_SiWangGuiWei;
+            break;
+    }
+
+    return 0;
+}
+
+int MJ_AnalyResult::calc_BeiShu(MJ_AnalyResult::CARD card, int flag)
+{
+
+    return 0;
 }
 
 
