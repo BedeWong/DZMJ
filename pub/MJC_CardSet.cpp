@@ -363,9 +363,67 @@ int MJC_CardSet::cGang()
 
 int MJC_CardSet::analysis()
 {
-    if(this->paiCount != 1 || this->paiCount != 4 ||
-            this->paiCount != 10 || this->paiCount != 13)
+    if(!(this->paiCount != 1 || this->paiCount != 4 ||
+            this->paiCount != 10 || this->paiCount != 13))
         return -1;
+
+    AnalyResults.clear();
+/**** 提前判断  特殊胡法 --  十三浪  巧七对   七风会
+ *   牌数  必须等于 13张
+*/
+    if(this->paiCount == 13)
+    {
+        CARD list[16] = {0};
+        MJ_AnalyResult analy;
+        int ret = 0;
+        analy.dan_count = this->paiCount;
+        memcpy(analy.dan, this->paiList, 16);
+
+        MJ_sort(analy.dan, analy.dan_count);
+        ret = analy.H_QiFengHui(list);
+        for(auto i=0; i<ret; i++)
+        {
+            AnalyResults[list[i]] = analy;
+        }
+        if(ret)
+            return 0;
+
+        analy.dan_count = this->paiCount;
+        memcpy(analy.dan, this->paiList, 16);
+
+        MJ_sort(analy.dan, analy.dan_count);
+        ret = analy.H_ShiSanLang(list);
+        for(auto i=0; i<ret; i++)
+        {
+            AnalyResults[list[i]] = analy;
+        }
+        if(ret)
+            return 0;
+
+        analy.dan_count = this->paiCount;
+        memcpy(analy.dan, this->paiList, 16);
+
+        MJ_sort(analy.dan, analy.dan_count);
+        //巧七对 需要把 王提取出来
+        for(auto i=0; i<this->paiCount; i++)
+        {
+            if(analy.dan[i] == this->wang)
+            {
+                analy.dan[i] = MJC_CardSet::NewCard;
+                analy.w_count++;
+            }
+        }
+        MJ_sort(analy.dan, analy.dan_count);
+        analy.dan_count -= analy.w_count;
+        ret = analy.H_QiaoQiDui(list);
+
+        for(auto i=0; i<ret; i++)
+        {
+            AnalyResults[list[i]] = analy;
+        }
+        if(ret)
+            return 0;
+    }
 
     typedef struct _node{
         typedef enum{
@@ -389,7 +447,7 @@ int MJC_CardSet::analysis()
     std::stack<Node> STACK;
 
     //前期准备
-    AnalyResults.clear();
+    //AnalyResults.clear();
     memset(&node, 0, sizeof(node));
     memcpy(node.pai, this->paiList, this->paiCount);
     node.count = this->paiCount;
@@ -625,15 +683,12 @@ int MJC_CardSet::analysis()
         {
             for(auto i=0; i<tingCount; i++)
             {
-                auto it = AnalyResults.find(allTing[i]);
+//                auto it = AnalyResults.find(allTing[i]);
                 //if(it != AnalyResults.end())
                 {
                     AnalyResults[allTing[i]] = analy;
 #ifdef DEBUG
-      analy.printResult();
-      for(auto&&it : AnalyResults){
-              std::cout << it.first << endl;
-                }
+//      analy.printResult();                }
 #endif
                 }
             }
@@ -734,6 +789,13 @@ void MJC_CardSet::printTest()
     cout << "* 可以碰：" << this->cPengList << endl;
     cout << "* 可以杠：" << this->cGangList << endl;
     cout << "* 可以胡：" << this->HuList << endl;
-    cout << "**********************************************" << endl;
+    cout << "* 可以胡："; for(auto it : AnalyResults) {cout << it.first << ": " << it.second.getFan() << "  ";}
+
+    cout << "\n**********************************************" << endl;
+}
+
+void MJC_CardSet::printHu()
+{
+
 }
 #endif

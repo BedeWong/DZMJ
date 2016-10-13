@@ -1,6 +1,8 @@
 #ifndef MJ_ANALYRESULT_H
 #define MJ_ANALYRESULT_H
 
+#include <list>
+
 #define DEBUG
 
 class MJC_CardSet;
@@ -45,6 +47,13 @@ public:
             HU_SiWangGuiWei	 	  = 0x01000000				//   四王归位
         };
 
+    enum HU_FLAG{
+        F_JiePao = 0,       // 接炮
+        F_ZiMo = 1,         // 自摸
+        F_QiangGang = 2,    // 抢杠胡
+        F_GangShangHua = 4  // 杠上开花
+    };
+
 public:
     MJ_AnalyResult();
     MJ_AnalyResult(MJC_CardSet &);
@@ -54,7 +63,17 @@ public:
     int canHu(CARD *);
 
     int addHu(HU _HU);
-    int calc_BeiShu(CARD card, int flag/*自摸、接炮、抢杠、杠上花、*/);//计算多少翻
+    int calc_BeiShu(const MJC_CardSet &, CARD card, int flag/*自摸、接炮、抢杠、杠上花、*/);//计算多少翻
+
+    int H_ShiSanLang(CARD *);     // 十三浪
+    int H_QiFengHui(CARD *);      // 七风会
+    int H_QiaoQiDui(CARD *);      // 七巧对
+
+    std::list<const char *> HU_names();
+    int getFan();
+
+private:
+    void analy_sort(CARD *li, int len);
 
 private:
     int st_count;
@@ -79,7 +98,9 @@ private:
     CARD dz[8];
     CARD el[8];
     CARD kz[8];
-    CARD dan[8];
+    CARD dan[16];
+
+    static const char *HuNames[32];
 
 #ifdef DEBUG
 public:
@@ -104,5 +125,28 @@ public:
 
 #define forin_kz(kz, Count, into, cur, w) forin_dz(kz, Count, into, cur, w)
 #define forin_dan(dan, Count, into, cur, w) forin_dz(dan, Count, into, cur, w)
+
+// 有几套
+#define hasYOUJITAO(li, len, result) do{\
+    int s=0, e=0, ef=0;\
+    for(auto i=0; i<(len) - 1; i++)\
+    {\
+        if((li)[i] == (li)[i+1])\
+        {\
+            e++;\
+            if(ef)\
+            {\
+               s++;\
+               e--;\
+            }\
+            ef = 1;\
+        }\
+    else \
+        ef = 0;\
+    }\
+    if(e >= 3 || s==1)\
+        *(result) = 2;\
+    else *(result) = 1;\
+}while(0)
 
 #endif // MJ_ANALYRESULT_H

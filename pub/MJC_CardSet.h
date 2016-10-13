@@ -13,12 +13,14 @@ public:
     typedef char CARD;
     typedef const char* pCCARD;
 
+    friend class MJ_AnalyResult;
+
 private:
     CARD wang;
     CARD NewCard;
     int paiCount;
 
-    CARD paiList[16];
+    CARD paiList[16];   //  ÷…œµƒ≈∆
 
     CARD HuList[16];
     CARD cChiList[16];
@@ -84,6 +86,7 @@ public:
 
 #ifdef DEBUG
     void printTest();
+    void printHu();
 #endif
 };
 
