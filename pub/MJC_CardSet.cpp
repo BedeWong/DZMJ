@@ -789,7 +789,18 @@ void MJC_CardSet::printTest()
     cout << "* 可以碰：" << this->cPengList << endl;
     cout << "* 可以杠：" << this->cGangList << endl;
     cout << "* 可以胡：" << this->HuList << endl;
-    cout << "* 可以胡："; for(auto it : AnalyResults) {cout << it.first << ": " << it.second.getFan() << "  ";}
+    cout << "* 可以胡：";
+    for(auto it : AnalyResults) {
+        it.second.calc_BeiShu(*this, it.first, MJ_AnalyResult::F_JiePao);
+        cout << it.first << ": " << it.second.getFan() << "  ";
+        list<const char *> lst = it.second.HU_names();
+
+        for(list<const char *>::iterator x = lst.begin(); x !=lst.end(); ++x)
+        {
+            cout << *x << "、";
+        }
+        cout << endl;
+    }
 
     cout << "\n**********************************************" << endl;
 }

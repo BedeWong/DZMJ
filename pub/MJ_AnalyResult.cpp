@@ -248,16 +248,12 @@ int MJ_AnalyResult::addHu(MJ_AnalyResult::HU _hu)
                                 fan |= HU_XiaoDao;
             break;
         case HU_YouYiTao	:
-                                if ((fan & HU_YouLiangTao))
-                                {
-                                    //fan |= HU_YouYiTao;
-                                    break;
-                                }
                                 if (fan & HU_YouYiTao) {				//  有一套在有一套==?
                                     fan |= HU_YouLiangTao;
                                     break;
                                 }
                                 fan |= HU_YouYiTao;
+                                break;
         case HU_QiaoQiDui	:
                                 fan |= HU_QiaoQiDui;
             break;
@@ -326,11 +322,13 @@ int MJ_AnalyResult::addHu(MJ_AnalyResult::HU _hu)
     return 0;
 }
 
-int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD card, int flag)
+int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD card, HU_FLAG flag)
 {
     CARD all_pai[16] = {0};  //
     CARD all_st[8] = {0};
     CARD all_sl[24] = {0};
+    CARD all_sl4yjt[8] = {0};
+    int all_slCount4yjt = 0;
     int all_paiCount = 0;
     int all_stCount = 0;
     int all_slCount = 0;
@@ -385,7 +383,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
 
         all_st[all_stCount++] = t;
     }
-    for(auto i=0; i<mj_set._c*3; i++)
+    for(auto i=0; i<mj_set._c; i++)
     {
         CARD t = mj_set.chi[i];
         if(t == MJC_CardSet::MJ_ZHONG)
@@ -396,6 +394,11 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         all_pai[all_paiCount++] = t;
 
         all_sl[all_slCount++] = t;
+
+        if(i%3 == 0)
+        {
+            all_sl4yjt[all_slCount4yjt++] = t;
+        }
     }
     for(auto i=0; i<mj_set.paiCount; i++)
     {
@@ -405,7 +408,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     //---------  顺便把  碰 吃 的也  收集了一份--------------
     //----  手上的三同  三连  找出来，
     for(auto i=0; i<st_count; i++){
-        CARD t = mj_set.chi[i];
+        CARD t = this->st[i];
         if(t == MJC_CardSet::MJ_ZHONG)
         {
             has_zhong = true;
@@ -416,14 +419,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
 
     for(auto i=0; i<sl_count; i++)
     {
-        CARD t = mj_set.chi[i];
-        if(t == MJC_CardSet::MJ_ZHONG)
-        {
-            has_zhong = true;
-            t = mj_set.wang;
-        }
-        all_sl[all_slCount++]= t;
-        t += 1;
+        CARD t = this->sl[i];
         if(t == MJC_CardSet::MJ_ZHONG)
         {
             has_zhong = true;
@@ -431,7 +427,18 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         }
         all_sl[all_slCount++]= t;
 
-        t -= 3;
+        //  记录进有几套判断中
+        all_sl4yjt[all_slCount4yjt++] = t;
+
+        t -= 1;
+        if(t == MJC_CardSet::MJ_ZHONG)
+        {
+            has_zhong = true;
+            t = mj_set.wang;
+        }
+        all_sl[all_slCount++]= t;
+
+        t -= 1;
         if(t == MJC_CardSet::MJ_ZHONG)
         {
             has_zhong = true;
@@ -525,9 +532,12 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
                     has_zhong = true;
                     t = mj_set.wang;
                 }
+                // 记录进有几套判断
+                all_sl4yjt[all_slCount4yjt++] = t+1;
+
                 all_sl[all_slCount++] = t+1;
                 all_sl[all_slCount++] = t;
-                all_sl[all_slCount++] = t-2;
+                all_sl[all_slCount++] = t-1;
                 this->kz_count--;
                 break;
             }
@@ -574,9 +584,10 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     this->analy_sort(all_st, all_stCount);
     this->analy_sort(all_sl, all_slCount);
 
+    //@ERR
     //  有几套
     int tao = 0;
-    hasYOUJITAO(all_sl, all_slCount, &tao);
+    hasYOUJITAO(all_sl4yjt, all_slCount4yjt, &tao);
     if(tao == 1)
     {
         this->addHu(this->HU_YouYiTao);
@@ -602,7 +613,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     }
     if(color == 0x08 || color == 0x04 || color == 0x02)//清一色
         this->addHu(this->HU_QingYiSe);
-    else if(color = 0x09 || color == 0x05 || color == 0x03)
+    else if(color == 0x09 || color == 0x05 || color == 0x03)
         this->addHu(this->HU_HunYiSe);
 
     //一条龙
@@ -659,12 +670,20 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
 
     //四归一
     int sgy = 0;
-    for(const char* str = all_pai; card != MJC_CardSet::MJ_WANG && strchr(str, card)!=NULL; sgy++);
-    if(sgy == 4)
+    if(card != MJC_CardSet::MJ_WANG)
+        for(const char* str = all_pai;str != NULL; sgy++)
+        {
+            str = strchr(str, card);
+            if(str == NULL)
+                break;
+            str++;
+        }
+
+    if(sgy == 3)
         this->addHu(this->HU_SiGuiYi);
 
     //单调将
-    if(this->dz_count + this->el_count + this->kz_count == 0 && this->dan_count == 1 && flag == this->F_JiePao)
+    if(mj_set.paiCount == 1 && flag == this->F_JiePao)
         this->addHu(this->HU_QuanQiuYi);
 
     //几王归位
@@ -696,7 +715,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
             this->addHu(this->HU_PengpengHu);
         break;
     case 1:
-        if(all_stCount == 4 || all_stCount==3 && this->dz_count==1)
+        if(all_stCount == 4 || (all_stCount==3 && this->dz_count==1))
             this->addHu(this->HU_PengpengHu);
         break;
     case 2:
@@ -837,14 +856,69 @@ int MJ_AnalyResult::H_QiaoQiDui(CARD *ting)
 
 std::list<const char *> MJ_AnalyResult::HU_names()
 {
-     auto lst = std::list<const char *>();
+     std::list<const char *> lst = std::list<const char *>();
+
+//     if(fan == 1)
+//         switch(fan & 0x07)
+//         {
+//         case HU_PingHu:
+//             lst.push_back(HuNames[0]);
+//             break;
+//         case HU_QiangGang:
+//             lst.push_back(HuNames[1]);
+//             break;
+//         case HU_GangShangHua:
+//             lst.push_back(HuNames[2]);
+//             break;
+//         }
+
+     int off = 1;
+     for(auto i=0x01; i<=0x01000000; i*=2, off++)
+     {
+         if(fan & i)
+             lst.push_back(HuNames[off]);
+     }
+     if(fan == 0)
+     {
+         lst.push_back(HuNames[0]);
+     }
 
      return lst;
 }
 
 int MJ_AnalyResult::getFan()
 {
-    return this->fan;
+    int beishu = 0;
+
+    /*if(fan & 0x07)  beishu += 1;*/
+    if(fan & 0x04)  beishu += 2;
+    for(auto i=0x08; i<=0x4000; i<<=1)
+    {
+        if(fan & i)
+            beishu += 2;
+    }
+
+    for(auto i=0x8000; i<=0x200000; i<<=1)
+    {
+        if(fan & i)
+            beishu += 4;
+    }
+
+    for(auto i=0x400000; i<=0x800000; i<<=1)
+    {
+        if(fan & i)
+            beishu += 8;
+    }
+
+    if(fan & 0x1000000)
+        beishu += 16;
+
+    if(fan == 0)
+    {
+        beishu += 1;
+    }
+
+    return beishu;
 }
 
 void MJ_AnalyResult::analy_sort(MJ_AnalyResult::CARD *li, int len)

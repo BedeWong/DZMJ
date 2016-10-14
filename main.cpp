@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
         set.init(cards, wang);
 
         set.analysis();
+
         set.printTest();
         set.printHu();
     }

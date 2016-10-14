@@ -38,7 +38,7 @@ public:
             HU_ShuangWangGuiWei = 0x040000,				//   双王归位
             HU_DanWangZhuaWang  = 0x080000,				//   单王抓王
             HU_ShuangWangZhua	= 0x100000,				//   双王抓
-            HU_QingYiSe			= 0x200000,
+            HU_QingYiSe			= 0x200000,             // 清一色
             //    8番
             HU_ShuangWangZhuaWang = 0x400000,				//   双王抓王
             HU_SanWangGuiWei	  = 0x800000,				//   三王归位
@@ -63,7 +63,7 @@ public:
     int canHu(CARD *);
 
     int addHu(HU _HU);
-    int calc_BeiShu(const MJC_CardSet &, CARD card, int flag/*自摸、接炮、抢杠、杠上花、*/);//计算多少翻
+    int calc_BeiShu(const MJC_CardSet &, CARD card, HU_FLAG flag/*自摸、接炮、抢杠、杠上花、*/);//计算多少翻
 
     int H_ShiSanLang(CARD *);     // 十三浪
     int H_QiFengHui(CARD *);      // 七风会
@@ -128,25 +128,14 @@ public:
 
 // 有几套
 #define hasYOUJITAO(li, len, result) do{\
-    int s=0, e=0, ef=0;\
-    for(auto i=0; i<(len) - 1; i++)\
+    for(auto i=0; i<len-1; i++)\
     {\
-        if((li)[i] == (li)[i+1])\
+        if(li[i] == li[i+1] || li[i] == li[i+1]+1)\
         {\
-            e++;\
-            if(ef)\
-            {\
-               s++;\
-               e--;\
-            }\
-            ef = 1;\
+            *(result)+=1;\
+            i++;\
         }\
-    else \
-        ef = 0;\
     }\
-    if(e >= 3 || s==1)\
-        *(result) = 2;\
-    else *(result) = 1;\
 }while(0)
 
 #endif // MJ_ANALYRESULT_H
