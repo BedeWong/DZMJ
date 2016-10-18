@@ -24,7 +24,7 @@ public:
     };
 
 protected:
-    int stat;//玩家状态
+    STAT stat;//玩家状态
     int x_ID;//座位号
     int p_ID;//玩家ID
     unsigned int score;//玩家分数

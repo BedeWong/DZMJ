@@ -14,7 +14,13 @@ SOURCES += main.cpp \
     pub\MJ_otherPlayer.cpp \
     cli\cli_main.cpp \
     cli\MJplayer.cpp \
-    pub/MJ_Base.cpp
+    pub/MJ_Base.cpp \
+    pub/MJ_Request.cpp \
+    cli/MJ_RequestLocal.cpp \
+    pub/MJ_response.cpp \
+    cli/MJ_LocalServer.cpp \
+    cli/MJ_Cli.cpp \
+    cli/MJ_Desktop.cpp
 
 HEADERS += \
     pub\MJ_Player.h \
@@ -22,4 +28,14 @@ HEADERS += \
     pub\MJ_otherPlayer.h \
     cli\cli_main.h \
     cli\MJplayer.h \
-    pub/MJ_Base.h
+    pub/MJ_Base.h \
+    pub/MJ_Request.h \
+    cli/MJ_RequestLocal.h \
+    pub/MJ_response.h \
+    cli/MJ_LocalServer.h \
+    cli/MJ_Cli.h \
+    cli/MJ_Desktop.h
+
+FORMS += \
+    cli/MJ_Cli.ui \
+    cli/MJ_Desktop.ui
