@@ -4,60 +4,22 @@
 #include <map>
 #include <string>
 #include "MJ_AnalyResult.h"
+#include "MJ_Base.h"
 
 #define DEBUG
 
-class MJ_Player
+class MJ_Player : public MJ_Base
 {
-public:
-    typedef int _L;
-    typedef char CARD;
-    typedef const char* pCCARD;
-
-    //pCCARD __cards = "风ABCDEFG  筒RSTUVWXYZ 条abcdefghi 万rstuvwxyz";
-    enum MJ_CARDS{
-        MJ_noCard=0,
-        MJ_JIUWAN = 'r', MJ_BAWAN, MJ_QIWAN, MJ_LIUWAN, MJ_WUWAN, MJ_SIWAN, MJ_SANWAN, MJ_ERWAN, MJ_YIWAN,
-        MJ_JIUTIAO = 'a', MJ_BATIAO, MJ_QITIAO, MJ_LIUTIAO, MJ_WUTIAO, MJ_SITIAO, MJ_SANTIAO, MJ_ERTIAO, MJ_YITIAO,
-        MJ_JIUTONG = 'R', MJ_BATONG, MJ_QITONG, MJ_LIUTONG, MJ_WUTONG, MJ_SITONG, MJ_SANTONG, MJ_ERTONG, MJ_YITONG,
-        MJ_BAN = 'A', MJ_FA, MJ_ZHONG, MJ_BEI, MJ_XI, MJ_NAN, MJ_DONG,
-        MJ_WANG = '0', MJ_ANGNG='*'
-    };
-
     friend class MJ_AnalyResult;
 
 private:
-    CARD wang;
-    CARD NewCard;
-    int paiReCount;//出过的牌张数
-    int paiCount;//手上的牌张数
-
-    CARD paiRecord[50];//出过的牌集合
-    CARD paiList[16];// 手上的牌
 
     CARD HuList[16];
     CARD cChiList[16];
     CARD cGangList[8];
     CARD cPengList[8];
 
-    CARD gang[8];
-    CARD peng[8];
-    CARD chi[16];
-
-    _L _g;
-    _L _p;
-    _L _c;
-    _L _h;
-
     std::map<CARD, MJ_AnalyResult> AnalyResults;
-
-    int stat;
-    int x_ID;
-    int p_ID;
-    unsigned int score;
-    int f_pri;
-    std::string p_name;
-
 private:
     bool hasSanLian(CARD*li, CARD c, CARD **res);
     bool hasErLian(CARD*li, CARD c, CARD **res);
@@ -71,22 +33,29 @@ public:
 
     // 开局初始化 并 分析 本家局势
     void init(pCCARD _paiList, CARD _wang) ;
-    // 抓牌
+
+    // 把抓到的牌放入牌列
     void addCard(CARD newCard) ;
 
-    // 出牌
-    int delCard(CARD card);
-    int delCard(int offset);
+    int ChuPai(CARD c) override;
+    // 删掉一张牌（出牌，吃-3， 碰-3， 杠-3）
+    int DelCard(CARD card);
+    int DelCard(int offset);
 
+    // 分析可 吃碰杠胡
     int cChi() ;
     int cPeng() ;
     int cGang() ;
     int analysis();
 
-    int Chi(CARD card, CARD c[3]);
-    int Peng(CARD card);
-    int Gang(CARD card);
-    bool Hu(CARD card);
+    int Hu(CARD c, pCCARD ll) override;
+    int Gang(CARD c) override;
+    int Peng(CARD c) override;
+    int Chi(CARD c, pCCARD ll) override;
+//    int Chi(CARD card, CARD c[3]);
+//    int Peng(CARD card);
+//    int Gang(CARD card);
+//    bool Hu(CARD card);
 
     //根据一张牌 获取到可以吃的牌组合。
     //返回值：-1  给出的card有误，0表示没有可以吃的，返回正整数表示res中有多少组
