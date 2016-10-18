@@ -1,5 +1,5 @@
 #include "MJ_AnalyResult.h"
-#include "MJC_CardSet.h"
+#include "MJ_Player.h"
 #include <cstring>
 
 #ifdef DEBUG
@@ -48,7 +48,7 @@ MJ_AnalyResult::MJ_AnalyResult()
     memset(this, 0, sizeof(MJ_AnalyResult));
 }
 
-MJ_AnalyResult::MJ_AnalyResult(MJC_CardSet &of)
+MJ_AnalyResult::MJ_AnalyResult(MJ_Player &of)
 {
     memset(this, 0, sizeof(MJ_AnalyResult));
 
@@ -62,7 +62,7 @@ MJ_AnalyResult::~MJ_AnalyResult()
 
 }
 
-int MJ_AnalyResult::canHu(MJC_CardSet::CARD *ting)
+int MJ_AnalyResult::canHu(MJ_Player::CARD *ting)
 {
     if(ting == NULL)
         throw(0);
@@ -108,7 +108,7 @@ int MJ_AnalyResult::canHu(MJC_CardSet::CARD *ting)
             case 1:// 手上有一张王的情况。。。
                 if(kz_count+dz_count+el_count==0 && dan_count==0)  // 王抓
                 {
-                    ting[tCount++] = MJC_CardSet::MJ_WANG;
+                    ting[tCount++] = MJ_Player::MJ_WANG;
                 }
                 else if(dan_count==1 && kz_count+dz_count+el_count == 1)
                 {
@@ -134,7 +134,7 @@ int MJ_AnalyResult::canHu(MJC_CardSet::CARD *ting)
                     forin_el(el, el_count, ting, tCount, _w)
                     forin_kz(kz, kz_count, ting, tCount, _w)
 
-                    ting[tCount++] = MJC_CardSet::MJ_WANG;
+                    ting[tCount++] = MJ_Player::MJ_WANG;
                 }
                 else if(dz_count+el_count+kz_count == 2 && dan_count == 1)
                 {
@@ -168,7 +168,7 @@ int MJ_AnalyResult::canHu(MJC_CardSet::CARD *ting)
 //                kz+dz+el==3&&dan==1
                 if(dan_count==0 && dz_count+el_count+kz_count==0)
                 {
-                    ting[tCount++] = MJC_CardSet::MJ_WANG;//
+                    ting[tCount++] = MJ_Player::MJ_WANG;//
                 }
                 else if(dan_count==0&&kz_count+el_count+dz_count == 2)
                 {
@@ -198,7 +198,7 @@ int MJ_AnalyResult::canHu(MJC_CardSet::CARD *ting)
 //                *      dz+el+kz==4 && dan==1
                 if(dan_count==0 && dz_count+el_count+kz_count)
                 {
-                    ting[tCount++] = MJC_CardSet::MJ_WANG;//
+                    ting[tCount++] = MJ_Player::MJ_WANG;//
                 }
                 else if(dz_count+kz_count+el_count==1 && dan_count==1)
                 {
@@ -212,7 +212,7 @@ int MJ_AnalyResult::canHu(MJC_CardSet::CARD *ting)
                     //forin_dz(dz, dz_count, ting, tCount, _w)
                     forin_el(el, el_count, ting, tCount, _w)
                     forin_kz(kz, kz_count, ting, tCount, _w)
-                    ting[tCount++] = MJC_CardSet::MJ_WANG;//
+                    ting[tCount++] = MJ_Player::MJ_WANG;//
                 }
                 else if(dz_count+el_count+kz_count==4 && dan_count==1)
                 {
@@ -322,7 +322,7 @@ int MJ_AnalyResult::addHu(MJ_AnalyResult::HU _hu)
     return 0;
 }
 
-int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD card, HU_FLAG flag)
+int MJ_AnalyResult::calc_BeiShu(const MJ_Player &mj_set,MJ_AnalyResult::CARD card, HU_FLAG flag)
 {
     CARD all_pai[16] = {0};  //
     CARD all_st[8] = {0};
@@ -359,7 +359,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     for(auto i=0; i<mj_set._g; i++)
     {
         CARD t = mj_set.gang[i];
-        if(t == MJC_CardSet::MJ_ZHONG)
+        if(t == MJ_Player::MJ_ZHONG)
         {
             has_zhong = true;
             t = mj_set.wang;
@@ -372,7 +372,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     for(auto i=0; i<mj_set._p; i++)
     {
         CARD t = mj_set.peng[i];
-        if(t == MJC_CardSet::MJ_ZHONG)
+        if(t == MJ_Player::MJ_ZHONG)
         {
             has_zhong = true;
             t = mj_set.wang;
@@ -386,7 +386,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     for(auto i=0; i<mj_set._c; i++)
     {
         CARD t = mj_set.chi[i];
-        if(t == MJC_CardSet::MJ_ZHONG)
+        if(t == MJ_Player::MJ_ZHONG)
         {
             has_zhong = true;
             t = mj_set.wang;
@@ -409,7 +409,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     //----  手上的三同  三连  找出来，
     for(auto i=0; i<st_count; i++){
         CARD t = this->st[i];
-        if(t == MJC_CardSet::MJ_ZHONG)
+        if(t == MJ_Player::MJ_ZHONG)
         {
             has_zhong = true;
             t = mj_set.wang;
@@ -420,7 +420,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     for(auto i=0; i<sl_count; i++)
     {
         CARD t = this->sl[i];
-        if(t == MJC_CardSet::MJ_ZHONG)
+        if(t == MJ_Player::MJ_ZHONG)
         {
             has_zhong = true;
             t = mj_set.wang;
@@ -431,7 +431,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         all_sl4yjt[all_slCount4yjt++] = t;
 
         t -= 1;
-        if(t == MJC_CardSet::MJ_ZHONG)
+        if(t == MJ_Player::MJ_ZHONG)
         {
             has_zhong = true;
             t = mj_set.wang;
@@ -439,7 +439,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         all_sl[all_slCount++]= t;
 
         t -= 1;
-        if(t == MJC_CardSet::MJ_ZHONG)
+        if(t == MJ_Player::MJ_ZHONG)
         {
             has_zhong = true;
             t = mj_set.wang;
@@ -447,14 +447,14 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         all_sl[all_slCount++]= t;
     }
 
-    if(card == MJC_CardSet::MJ_WANG)
+    if(card == MJ_Player::MJ_WANG)
     {
         switch(this->w_count)
         {
         case 1:
             if(this->dan == 0 && this->el_count+this->kz_count+ this->dz_count==0)
             {
-                if(mj_set.NewCard == MJC_CardSet::MJ_WANG)
+                if(mj_set.NewCard == MJ_Player::MJ_WANG)
                     this->addHu(this->HU_DanWangZhuaWang);
                 else
                     this->addHu(this->HU_DanWangZhua);
@@ -463,7 +463,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         case 2:
             if(dz_count+el_count+kz_count==1 && dan_count==0)
             {
-                if(mj_set.NewCard == MJC_CardSet::MJ_WANG)
+                if(mj_set.NewCard == MJ_Player::MJ_WANG)
                     this->addHu(this->HU_DanWangZhuaWang);
                 else
                     this->addHu(this->HU_DanWangZhua);
@@ -472,14 +472,14 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         case 3:
             if(dan_count==1 && dz_count+el_count+kz_count==0)
             {
-                if(mj_set.NewCard == MJC_CardSet::MJ_WANG)
+                if(mj_set.NewCard == MJ_Player::MJ_WANG)
                     this->addHu(this->HU_ShuangWangZhuaWang);
                 else
                     this->addHu(this->HU_ShuangWangZhua);
             }
             else if(dan_count==0&&kz_count+dz_count+el_count==2)
             {
-                if(mj_set.NewCard == MJC_CardSet::MJ_WANG)
+                if(mj_set.NewCard == MJ_Player::MJ_WANG)
                     this->addHu(this->HU_DanWangZhuaWang);
                 else
                     this->addHu(this->HU_DanWangZhua);
@@ -505,14 +505,14 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     }
 
     //  如果不是 王抓.   把 胡的那张牌  结合进来
-    if(card != MJC_CardSet::MJ_WANG)
+    if(card != MJ_Player::MJ_WANG)
     {
         for(auto i=0; i<this->dz_count;i++)
         {
             if(card == this->dz[i])     //  与对子能结合成三同
             {
                 CARD t = card;
-                if(t == MJC_CardSet::MJ_ZHONG)
+                if(t == MJ_Player::MJ_ZHONG)
                 {
                     has_zhong = true;
                     t = mj_set.wang;
@@ -527,7 +527,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
             if(card == this->kz[i])
             {
                 CARD t = card;
-                if(t == MJC_CardSet::MJ_ZHONG)
+                if(t == MJ_Player::MJ_ZHONG)
                 {
                     has_zhong = true;
                     t = mj_set.wang;
@@ -545,12 +545,12 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         for(auto i=0; i<this->el_count; i++)
         {
             CARD c = card;
-            if(c == MJC_CardSet::MJ_ZHONG)
+            if(c == MJ_Player::MJ_ZHONG)
                 c = mj_set.wang;
             if(c == this->el[i]+1)
             {
                 CARD t = c;
-                if(t == MJC_CardSet::MJ_ZHONG)
+                if(t == MJ_Player::MJ_ZHONG)
                 {
                     has_zhong = true;
                     t = mj_set.wang;
@@ -566,7 +566,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
             if(c==this->el[i]-2)
             {
                 CARD t = c;
-                if(t == MJC_CardSet::MJ_ZHONG)
+                if(t == MJ_Player::MJ_ZHONG)
                 {
                     has_zhong = true;
                     t = mj_set.wang;
@@ -584,7 +584,6 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
     this->analy_sort(all_st, all_stCount);
     this->analy_sort(all_sl, all_slCount);
 
-    //@ERR
     //  有几套
     int tao = 0;
     hasYOUJITAO(all_sl4yjt, all_slCount4yjt, &tao);
@@ -622,8 +621,8 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
         for(int i=0; i<all_slCount; i++)
         {
             ytl = 1;
-            CARD  j=MJC_CardSet::MJ_YIWAN;
-            for(; j>=MJC_CardSet::MJ_JIUWAN; j = j-1)
+            CARD  j=MJ_Player::MJ_YIWAN;
+            for(; j>=MJ_Player::MJ_JIUWAN; j = j-1)
             {
                 if(strchr(all_sl, j) == NULL)
                 {
@@ -638,7 +637,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
             }
 
             ytl = 1;
-            for(j=MJC_CardSet::MJ_YITONG; j>=MJC_CardSet::MJ_JIUTONG; j -= 1)
+            for(j=MJ_Player::MJ_YITONG; j>=MJ_Player::MJ_JIUTONG; j -= 1)
             {
                 if(strchr(all_sl, j) == NULL)
                 {
@@ -653,7 +652,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
             }
 
             ytl = 1;
-            for(j = MJC_CardSet::MJ_YITIAO; j>=MJC_CardSet::MJ_JIUTIAO; j -= 1)
+            for(j = MJ_Player::MJ_YITIAO; j>=MJ_Player::MJ_JIUTIAO; j -= 1)
             {
                 if(strchr(all_sl, j) == NULL)
                 {
@@ -670,7 +669,7 @@ int MJ_AnalyResult::calc_BeiShu(const MJC_CardSet &mj_set,MJ_AnalyResult::CARD c
 
     //四归一
     int sgy = 0;
-    if(card != MJC_CardSet::MJ_WANG)
+    if(card != MJ_Player::MJ_WANG)
         for(const char* str = all_pai;str != NULL; sgy++)
         {
             str = strchr(str, card);
@@ -822,19 +821,19 @@ int MJ_AnalyResult::H_QiaoQiDui(CARD *ting)
         if(this->dan[i] == this->dan[i+1])
         {
             this->dz[this->dz_count++] = this->dan[i];
-            this->dan[i] = MJC_CardSet::MJ_noCard;
-            this->dan[i+1] = MJC_CardSet::MJ_noCard;
+            this->dan[i] = MJ_Player::MJ_noCard;
+            this->dan[i+1] = MJ_Player::MJ_noCard;
         }
     }
 
     if(this->w_count == this->dan_count-1)
     {
-        forin_dan(dan, dan_count, ting, t_count, MJC_CardSet::MJ_noCard)
+        forin_dan(dan, dan_count, ting, t_count, MJ_Player::MJ_noCard)
     }
     else if(this->w_count-this->dan_count-1 >=0)
     {
-        forin_dz(dz, dz_count, ting, t_count, MJC_CardSet::MJ_noCard)
-        forin_dan(dan, dan_count, ting, t_count, MJC_CardSet::MJ_noCard)
+        forin_dz(dz, dz_count, ting, t_count, MJ_Player::MJ_noCard)
+        forin_dan(dan, dan_count, ting, t_count, MJ_Player::MJ_noCard)
     }
 
     int w = 0;

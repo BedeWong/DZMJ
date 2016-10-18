@@ -5,10 +5,10 @@
 
 #define DEBUG
 
-class MJC_CardSet;
+class MJ_Player;
 class MJ_AnalyResult
 {
-    friend class MJC_CardSet;
+    friend class MJ_Player;
 public:
     typedef char CARD;
     enum HU{
@@ -56,14 +56,14 @@ public:
 
 public:
     MJ_AnalyResult();
-    MJ_AnalyResult(MJC_CardSet &);
+    MJ_AnalyResult(MJ_Player &);
 
     ~MJ_AnalyResult();
 
     int canHu(CARD *);
 
     int addHu(HU _HU);
-    int calc_BeiShu(const MJC_CardSet &, CARD card, HU_FLAG flag/*自摸、接炮、抢杠、杠上花、*/);//计算多少翻
+    int calc_BeiShu(const MJ_Player &, CARD card, HU_FLAG flag/*自摸、接炮、抢杠、杠上花、*/);//计算多少翻
 
     int H_ShiSanLang(CARD *);     // 十三浪
     int H_QiFengHui(CARD *);      // 七风会

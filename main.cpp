@@ -1,7 +1,7 @@
 //#include <QCoreApplication>
 
 #include <iostream>
-#include "pub/MJC_CardSet.h"
+#include "pub/MJ_Player.h"
 
 using namespace std;
 
@@ -10,8 +10,8 @@ int main(int argc, char *argv[])
 //    QCoreApplication a(argc, argv);
 
 
-    MJC_CardSet set;
-    MJC_CardSet::CARD cards[16], wang, del, add;
+    MJ_Player set;
+    MJ_Player::CARD cards[16], wang, del, add;
     while(1)
     {
         cin >> cards >> wang;
