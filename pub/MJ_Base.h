@@ -1,6 +1,7 @@
 #ifndef MJ_BASE_H
 #define MJ_BASE_H
 
+#include <string>
 
 class MJ_Base
 {
@@ -22,7 +23,7 @@ public:
         ST_Ready = 1, ST_Wait, ST_OffLine
     };
 
-private:
+protected:
     int stat;//Íæ¼Ò×´Ì¬
     int x_ID;//×ùÎ»ºÅ
     int p_ID;//Íæ¼ÒID
@@ -43,6 +44,7 @@ private:
     _L _g;
     _L _p;
     _L _c;
+    _L _h;
 public:
     MJ_Base();
 

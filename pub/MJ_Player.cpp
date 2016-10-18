@@ -136,6 +136,7 @@ void MJ_Player::addCard(MJ_Base::CARD nc)
 
 int MJ_Player::ChuPai(MJ_Base::CARD c)
 {
+    this->paiRecList[this->paiRecCount++] = c;
     return DelCard(c);
 }
 
@@ -316,6 +317,7 @@ int MJ_Player::cChi()
         }
     }
 
+    this->cChiCount = cLen;
     return cLen;
 }
 
@@ -341,6 +343,7 @@ int MJ_Player::cPeng()
         }
     }
 
+    this->cPengCount = count;
     return count;
 }
 
@@ -361,6 +364,7 @@ int MJ_Player::cGang()
         }
     }
 
+    this->cGangCount = count;
     return count;
 }
 
@@ -702,53 +706,100 @@ int MJ_Player::analysis()
     return 0;
 }
 
-int MJ_Player::Chi(MJ_Base::CARD card, CARD c[])
+int MJ_Player::Chi(MJ_Base::CARD card, pCCARD ll)
 {
     for(int i=0; i<3; i++)
     {
-        if(card != c[i])
-            this->delCard(c[i]);
+        if(card != ll[i])
+            this->DelCard(ll[i]);
 
-        this->chi[_c++] = c[i];
+        this->chi[_c++] = ll[i];
     }
+
+    this->MJ_sort(this->paiList, this->paiCount);
 
     return 0;
 }
 
 int MJ_Player::Peng(MJ_Base::CARD card)
 {
-    this->delCard(card);
-    this->delCard(card);
+    this->DelCard(card);
+    this->DelCard(card);
 
     this->peng[_p++] = card;
+
+    this->MJ_sort(this->paiList, this->paiCount);
+
     return 0;
 }
 
 int MJ_Player::Gang(MJ_Base::CARD card)
 {
-    this->delCard(card);
-    this->delCard(card);
-    this->delCard(card);
+    this->DelCard(card);
+    this->DelCard(card);
+    this->DelCard(card);
 
     this->gang[_g++] = card;
+
+    this->MJ_sort(this->paiList, this->paiCount);
+
     return 0;
 }
 
-bool MJ_Player::Hu(CARD card)
+int MJ_Player::Hu(CARD card, pCCARD ll)
 {
-    for(auto it : AnalyResults)
-    {
-        if(it.first == card)
-        {
-            return true;
-        }
-    }
-    return false;
+    return 0;
 }
 
 int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[3])
 {
+    return 0;
+}
 
+bool MJ_Player::testHu(MJ_Base::CARD c)
+{
+    for(auto it : AnalyResults)
+    {
+        if(it.first == c)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool MJ_Player::testPeng(MJ_Base::CARD c)
+{
+    for(auto i=0; i<this->cPengCount; i++)
+    {
+        if(c == this->cPengList[i])
+            return true;
+    }
+
+    return false;
+}
+
+bool MJ_Player::testGang(MJ_Base::CARD c)
+{
+    for(auto i=0; i<this->cGangCount; i++)
+    {
+        if(c == this->cGangList[i])
+            return true;
+    }
+
+    return false;
+}
+
+bool MJ_Player::testChi(MJ_Base::CARD c)
+{
+    for(auto i=0; i<this->cChiCount; i++)
+    {
+        if(c == this->cChiList[i])
+            return true;
+    }
+
+    return false;
 }
 
 int MJ_Player::copy_chiList(MJ_AnalyResult *to)

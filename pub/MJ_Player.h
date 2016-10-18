@@ -19,6 +19,12 @@ private:
     CARD cGangList[8];
     CARD cPengList[8];
 
+    CARD wang;
+
+    _L cPengCount;
+    _L cGangCount;
+    _L cChiCount;
+
     std::map<CARD, MJ_AnalyResult> AnalyResults;
 private:
     bool hasSanLian(CARD*li, CARD c, CARD **res);
@@ -43,6 +49,7 @@ public:
     int DelCard(int offset);
 
     // 分析可 吃碰杠胡
+    // 返回值：>=0匹配结果数， <0：数据有误
     int cChi() ;
     int cPeng() ;
     int cGang() ;
@@ -52,15 +59,16 @@ public:
     int Gang(CARD c) override;
     int Peng(CARD c) override;
     int Chi(CARD c, pCCARD ll) override;
-//    int Chi(CARD card, CARD c[3]);
-//    int Peng(CARD card);
-//    int Gang(CARD card);
-//    bool Hu(CARD card);
+
 
     //根据一张牌 获取到可以吃的牌组合。
     //返回值：-1  给出的card有误，0表示没有可以吃的，返回正整数表示res中有多少组
     //res存放结果，非线程安全
     int getCChiList(CARD card, CARD (*res)[3]);
+    bool testHu(CARD c);
+    bool testPeng(CARD c);
+    bool testGang(CARD c);
+    bool testChi(CARD c);
 
     int copy_chiList(MJ_AnalyResult *);
     int copy_pengList(MJ_AnalyResult *);
