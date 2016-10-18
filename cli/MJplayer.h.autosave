@@ -10,9 +10,9 @@ class MJplayer
     MJ_otherPlayer *other1;
     MJ_otherPlayer *other2;
     MJ_otherPlayer *other3;
+
     
-    int 
-    
+
 public:
     MJplayer();
 };

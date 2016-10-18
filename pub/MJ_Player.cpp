@@ -1,7 +1,6 @@
 #include "MJ_Player.h"
 #include "MJ_AnalyResult.h"
 #include <cstring>
-#include <algorithm>
 #include <stack>
 
 #ifdef DEBUG
@@ -11,7 +10,7 @@
 
 #endif
 
-bool MJ_Player::hasSanLian(MJ_Player::CARD *li, MJ_Player::CARD c, CARD **res)
+bool MJ_Player::hasSanLian(MJ_Base::CARD *li, MJ_Base::CARD c, CARD **res)
 {
     if(isFENG(c))
         return false;
@@ -34,7 +33,7 @@ bool MJ_Player::hasSanLian(MJ_Player::CARD *li, MJ_Player::CARD c, CARD **res)
     return false;
 }
 
-bool MJ_Player::hasErLian(MJ_Player::CARD *li, MJ_Player::CARD c, CARD **res)
+bool MJ_Player::hasErLian(MJ_Base::CARD *li, MJ_Base::CARD c, CARD **res)
 {
     if(isFENG(c))
         return false;
@@ -57,7 +56,7 @@ bool MJ_Player::hasErLian(MJ_Player::CARD *li, MJ_Player::CARD c, CARD **res)
     return false;
 }
 
-bool MJ_Player::hasKanZhang(MJ_Player::CARD *li, MJ_Player::CARD c, CARD **res)
+bool MJ_Player::hasKanZhang(MJ_Base::CARD *li, MJ_Base::CARD c, CARD **res)
 {
     if(isFENG(c))
         return false;
@@ -85,7 +84,7 @@ MJ_Player::MJ_Player()
 
 }
 
-void MJ_Player::init(MJ_Player::pCCARD _paiList, MJ_Player::CARD _wang)
+void MJ_Player::init(MJ_Player::pCCARD _paiList, MJ_Base::CARD _wang)
 {
     _g = 0;
     _p = 0;
@@ -115,12 +114,12 @@ void MJ_Player::init(MJ_Player::pCCARD _paiList, MJ_Player::CARD _wang)
 #endif
 }
 
-void MJ_Player::addCard(MJ_Player::CARD newCard)
+void MJ_Player::addCard(MJ_Base::CARD nc)
 {
     auto i = this->paiCount;
     for(; i >0; i--)
     {
-        if(this->paiList[i-1] < newCard)
+        if(this->paiList[i-1] < nc)
         {
            this->paiList[i] = this->paiList[i-1];
            continue;
@@ -128,14 +127,19 @@ void MJ_Player::addCard(MJ_Player::CARD newCard)
         break;
     }
 
-    this->paiList[i] = newCard;
+    this->paiList[i] = nc;
     this->paiCount++;
 #ifdef DEBUG
-    cout << "*增加牌:" << newCard << ", " << this->paiList << "  " << this->paiCount << endl;
+    cout << "*增加牌:" << nc << ", " << this->paiList << "  " << this->paiCount << endl;
 #endif
 }
 
-int MJ_Player::delCard(MJ_Player::CARD card)
+int MJ_Player::ChuPai(MJ_Base::CARD c)
+{
+    return DelCard(c);
+}
+
+int MJ_Player::DelCard(MJ_Base::CARD card)
 {
     auto i = 0;
     bool flag = false;
@@ -171,7 +175,7 @@ int MJ_Player::delCard(MJ_Player::CARD card)
     return 0;
 }
 
-int MJ_Player::delCard(int offset)
+int MJ_Player::DelCard(int offset)
 {
     if (offset < 0 || offset >= this->paiCount)
     {
@@ -429,7 +433,7 @@ int MJ_Player::analysis()
             W_ST, W_SL, W_DZ, W_EL, W_KZ, W_DAN
         }WHO;
 
-        typename MJ_Player::CARD pai[16];    //
+        typename MJ_Base::CARD pai[16];    //
         int count;  // 张数
         int pos;    // 续点位置
         WHO who;    // 压栈者
@@ -698,7 +702,7 @@ int MJ_Player::analysis()
     return 0;
 }
 
-int MJ_Player::Chi(MJ_Player::CARD card, CARD c[])
+int MJ_Player::Chi(MJ_Base::CARD card, CARD c[])
 {
     for(int i=0; i<3; i++)
     {
@@ -711,7 +715,7 @@ int MJ_Player::Chi(MJ_Player::CARD card, CARD c[])
     return 0;
 }
 
-int MJ_Player::Peng(MJ_Player::CARD card)
+int MJ_Player::Peng(MJ_Base::CARD card)
 {
     this->delCard(card);
     this->delCard(card);
@@ -720,7 +724,7 @@ int MJ_Player::Peng(MJ_Player::CARD card)
     return 0;
 }
 
-int MJ_Player::Gang(MJ_Player::CARD card)
+int MJ_Player::Gang(MJ_Base::CARD card)
 {
     this->delCard(card);
     this->delCard(card);
@@ -742,7 +746,7 @@ bool MJ_Player::Hu(CARD card)
     return false;
 }
 
-int MJ_Player::getCChiList(MJ_Player::CARD card, MJ_Player::CARD (*res)[3])
+int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[3])
 {
 
 }
@@ -768,7 +772,7 @@ int MJ_Player::copy_gangList(MJ_AnalyResult *to)
     return this->_g;
 }
 
-void MJ_Player::MJ_sort(typename MJ_Player::CARD *li, int len)
+void MJ_Player::MJ_sort(typename MJ_Base::CARD *li, int len)
 {
     for(int i=0; i<len-1; i++)
     {
