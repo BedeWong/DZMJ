@@ -9,6 +9,7 @@
 #include "../pub/MJ_otherPlayer.h"
 #include "MJ_RequestLocal.h"
 #include "MJ_LocalServer.h"
+#include "../pub/MJ_response.h"
 
 namespace Ui {
 class MJ_Desktop;
@@ -27,14 +28,18 @@ private:
 
 public:
 
+public slots:
+    void responseSlot(MJ_response response);
+
 private:
     MJ_Base *player[4];
+    MJ_Player *self;
 
     MJ_Request *request;
 
     MJ_LocalServer *server;
 
-    int self;//本家位置
+    int self_offset;//本家位置
     int zhuang;//庄家位置
     int ID; //本家ID
 };

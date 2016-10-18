@@ -12,10 +12,17 @@ MJ_Desktop::MJ_Desktop(MJ_Cli::GF_Flag flag, QWidget *parent) :
     this->player[2] = new MJ_otherPlayer();
     this->player[3] = new MJ_otherPlayer();
 
+    this->self = this->player[0];
+
     if(flag == MJ_Cli::GF_Local)
     {
         this->request = new MJ_RequestLocal();
         this->server = new MJ_LocalServer();
+        this->zhuang = 0;
+        this->self_offset = 0;//庄家，本家都在0下标位置
+
+        connect(this->request, SIGNAL(RequestSignal(MJ_RequestData)),
+                this->server, SLOT(RecvSlot(MJ_RequestData));
     }
     else if(flag == MJ_Cli::GF_OnLine)
     {
@@ -35,3 +42,21 @@ MJ_Desktop::~MJ_Desktop()
     delete this->request;
     delete this->server;
 }
+
+void MJ_Desktop::responseSlot(MJ_response response)
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

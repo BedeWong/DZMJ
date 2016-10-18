@@ -5,7 +5,7 @@ MJ_RequestLocal::MJ_RequestLocal(QObject *parent) : QObject(parent)
 
 }
 
-void MJ_RequestLocal::send(MJ_response &r)
+void MJ_RequestLocal::send(MJ_RequestData & req)
 {
-
+    emit RequestSignal(req);
 }
