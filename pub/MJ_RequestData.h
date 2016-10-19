@@ -3,18 +3,10 @@
 
 #include "../pub/MJ_Base.h"
 
+#define DataSize 512
+
 class MJ_RequestData
 {
-public:
-    MJ_RequestData(Type type=R_NoType, CARD c=MJ_Base::MJ_noCard);
-
-    void setType(Type type);
-    void addType(Type type);
-    void setCard(MJ_Base::CARD c);
-    void setHGPCList(MJ_Base::pCCARD h, MJ_Base::pCCARD g, MJ_Base::pCCARD p, MJ_Base::pCCARD c);
-    void setChi(MJ_Base::CARD chi[3]);
-
-    int getData(char *dst);//从buf位置填充本请求体，返回值：填充的长度
 public:
     enum Type{
         R_NoType,
@@ -32,14 +24,32 @@ public:
     };
 
     typedef unsigned int size_t;
-    const size_t DataSize = 512;
+public:
+    MJ_RequestData(int id, Type type=R_NoType, MJ_Base::CARD c=MJ_Base::MJ_noCard);
+
+    void setType(Type type);
+    void addType(Type type);
+    void setCard(MJ_Base::CARD c);
+    void setHGPCList(MJ_Base::pCCARD h, MJ_Base::pCCARD g, MJ_Base::pCCARD p, MJ_Base::pCCARD c);
+    void setChi(MJ_Base::CARD chi[3]);
+    void setSenderID(int id);
+
+    int getData(char *dst);//从buf位置填充本请求体，返回值：填充的长度
+
+    int getType()const;
+    int getHGPCList(MJ_Base::CARD *h, MJ_Base::CARD *g, MJ_Base::CARD *p, MJ_Base::CARD *c)const;
+    int getChi(MJ_Base::CARD chi[3])const;
+    MJ_Base::CARD getCard()const;
+    int getSenderID()const;
+public:
 
 private:
     char data[DataSize];
     size_t len;
 
     size_t ver;
-    Type type;
+    int type;
+    int senderID;//0-3
 
     MJ_Base::CARD cd;
     MJ_Base::CARD chiList[8];

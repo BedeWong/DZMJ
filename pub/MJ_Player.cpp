@@ -802,6 +802,26 @@ bool MJ_Player::testChi(MJ_Base::CARD c)
     return false;
 }
 
+int MJ_Player::setcHuList(MJ_Base::CARD _h[])
+{
+
+}
+
+int MJ_Player::setcGangList(MJ_Base::CARD _g[])
+{
+
+}
+
+int MJ_Player::setcPengList(MJ_Base::CARD _p[])
+{
+
+}
+
+int MJ_Player::setcChiList(MJ_Base::CARD _c[])
+{
+
+}
+
 int MJ_Player::copy_chiList(MJ_AnalyResult *to)
 {
     to->c_count = this->_c;

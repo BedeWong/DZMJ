@@ -1,5 +1,6 @@
 #include "MJ_Cli.h"
 #include "ui_MJ_Cli.h"
+#include "MJ_Desktop.h"
 
 MJ_Cli::MJ_Cli(QWidget *parent) :
     QWidget(parent),

@@ -12,7 +12,7 @@ class MJ_RequestLocal : public QObject, MJ_Request
 public:
     explicit MJ_RequestLocal(QObject *parent = 0);
 
-    void send(MJ_RequestData &) override;
+    void req_send(MJ_RequestData &req) override;
 
 signals:
     void RequestSignal(MJ_RequestData);

@@ -2,12 +2,13 @@
 
 #include <cstring>
 
-MJ_RequestData::MJ_RequestData(Type type, CARD c)
+MJ_RequestData::MJ_RequestData(int id, Type type, MJ_Base::CARD c)
 {
     this->ver = 100;
     this->type = type;
+    this->senderID = id;
     this->cd = c;
-    this->len = 9;
+    this->len = 13;
 
     memset(this->data, 0, DataSize);
     memset(this->chiList, 0, 8);
@@ -53,9 +54,15 @@ void MJ_RequestData::setChi(MJ_Base::CARD chi[])
     this->len += 3;
 }
 
+void MJ_RequestData::setSenderID(int id)
+{
+    this->senderID = id;
+    this->len += 4;
+}
+
 int MJ_RequestData::getData(char *dst)
 {
-    if(buf == nullptr)
+    if(dst == nullptr)
         return 0;
 
     char *buf = dst;
@@ -64,6 +71,9 @@ int MJ_RequestData::getData(char *dst)
     buf += 4;
 
     *(int *)(buf) = (int)(this->type);
+    buf += 4;
+
+    *(int *)(buf) = (int)(this->senderID);
     buf += 4;
 
     *buf = (char)(this->cd);
@@ -82,11 +92,55 @@ int MJ_RequestData::getData(char *dst)
     }
     if(this->type & R_Chi)
     {
-        memcpy(buf, this->chi, 8);
+        memcpy(buf, this->chi, 3);
         buf += 3;
     }
 
     return buf-dst;
+}
+
+int MJ_RequestData::getType() const
+{
+    return this->type;
+}
+
+int MJ_RequestData::getHGPCList(MJ_Base::CARD *h, MJ_Base::CARD *g, MJ_Base::CARD *p, MJ_Base::CARD *c) const
+{
+    if(h == nullptr || g==nullptr || p==nullptr || c==nullptr)
+        return -1;
+
+    if(this->type & R_HGPCList == 0)
+        return -1;
+
+    memcpy(h, this->huList, 8);
+    memcpy(g, this->gangList, 8);
+    memcpy(p, this->pengList, 8);
+    memcpy(c, this->chiList, 8);
+
+    return 0;
+}
+
+int MJ_RequestData::getChi(MJ_Base::CARD chi[]) const
+{
+    if(chi == nullptr)
+        return -1;
+
+    if(this->type & R_Chi)
+    {
+        memcpy(chi, this->chi, 3);
+    }
+
+    return 0;
+}
+
+MJ_Base::CARD MJ_RequestData::getCard() const
+{
+    return this->cd;
+}
+
+int MJ_RequestData::getSenderID() const
+{
+    return this->senderID;
 }
 
 

@@ -3,13 +3,13 @@
 
 #include <QWidget>
 
-#include "MJ_Cli.h"
 #include "../pub/MJ_Base.h"
 #include "../pub/MJ_Player.h"
 #include "../pub/MJ_otherPlayer.h"
+#include "../pub/MJ_response.h"
 #include "MJ_RequestLocal.h"
 #include "MJ_LocalServer.h"
-#include "../pub/MJ_response.h"
+#include "MJ_Cli.h"
 
 namespace Ui {
 class MJ_Desktop;
@@ -35,7 +35,7 @@ private:
     MJ_Base *player[4];
     MJ_Player *self;
 
-    MJ_Request *request;
+    MJ_RequestLocal *request;
 
     MJ_LocalServer *server;
 

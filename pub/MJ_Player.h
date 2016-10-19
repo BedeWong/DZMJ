@@ -70,6 +70,13 @@ public:
     bool testGang(CARD c);
     bool testChi(CARD c);
 
+    //svr 中用到，直接设置玩家分析的结果进集合中
+    //返回值：此些函数中有验证功能，通过返回（list）个数，其他返回-1
+    int setcHuList(CARD _h[]);
+    int setcGangList(CARD _g[]);
+    int setcPengList(CARD _p[]);
+    int setcChiList(CARD _c[]);
+
     int copy_chiList(MJ_AnalyResult *);
     int copy_pengList(MJ_AnalyResult *);
     int copy_gangList(MJ_AnalyResult *);

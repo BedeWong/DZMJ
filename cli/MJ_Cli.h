@@ -3,8 +3,7 @@
 
 #include <QWidget>
 
-#include "MJ_Desktop.h"
-
+class MJ_Desktop;
 namespace Ui {
 class MJ_Cli;
 }
