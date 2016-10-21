@@ -29,6 +29,8 @@ public:
     void resl_Peng(MJ_RequestData &);
     void resl_Chi(MJ_RequestData &);
     void resl_Cancel(MJ_RequestData &);
+    void resl_AnGang(MJ_RequestData &);
+    void resl_BuGang(MJ_RequestData &);
 
 signals:
     void responseSignal(MJ_response);
@@ -36,6 +38,7 @@ signals:
 public slots:
     void RecvSlot(MJ_RequestData request);
     void tmOutSlot();
+    void tmChuPaiSlot();
 
 public:
     enum SVR_STAT{
@@ -46,9 +49,9 @@ public:
     enum Policy{
         P_None = 0x0,
         P_Chi = 0x01,
-        P_Peng = 0x02,
-        P_Gang = 0x04,
-        P_Hu = 0x08,
+        P_Peng = 0x10,
+        P_Gang = 0x100,
+        P_Hu = 0x1000,
         P_Max
     };
 
@@ -60,6 +63,7 @@ private:
     int current_policy;
     int current_policy_ID;
     bool f_HGPC_valid;
+    bool BuGang_falg;
     MJ_Base::CARD chi[3];
 
     int cur_id;
@@ -75,6 +79,15 @@ private:
 
     SVR_STAT stat;
     QTimer *tmOut;
+    QTimer *tmChuPai;
 };
+
+#define resp_unsuccessful(who, to) do{\
+    MJ_response resp;\
+    resp.setType(MJ_response::T_UnSucc);\
+    resp.setWho((who));\
+    resp.setSendTo((to));\
+    send(resp);\
+}while(0)
 
 #endif // MJ_LOCALSERVER_H

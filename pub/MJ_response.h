@@ -9,17 +9,20 @@ class MJ_response
 {
 public:
     enum Type{
-        T_Ok = 0x01, //ack
-        T_confirm, //二次确认
+        T_Ok = 0x01, //ack，回应此次操作是有效的
+        T_confirm, //二次确认，
         T_Wait,
         T_Init,
-        T_ChuPai,
+        T_ChuPai,//告知client该出牌了，也表示
         T_FaPai,
         T_Hu,
         T_Gang,
         T_Peng,
         T_Chi,
         T_GMOver,//game over
+        T_UnSucc = 0x400,  // 不成功的操作,有时候由于延时导致的不一致，服务端已经超时做出默认动作了
+                           // 或者已经收到高优先级的动作了 才收到 client的请求（或低优先级的请求）
+                           // 返回此消息
         T_Max
     };
 

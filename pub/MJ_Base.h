@@ -1,6 +1,7 @@
 #ifndef MJ_BASE_H
 #define MJ_BASE_H
 
+#include <cstring>
 #include <string>
 
 class MJ_Base
@@ -47,6 +48,9 @@ protected:
     _L _h;
 public:
     MJ_Base();
+    void init();
+
+    virtual ~MJ_Base();
 
     virtual int Hu(CARD c, pCCARD ll) = 0;
     virtual int Gang(CARD c) = 0;

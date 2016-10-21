@@ -86,28 +86,30 @@ MJ_Player::MJ_Player()
 
 void MJ_Player::init(MJ_Player::pCCARD _paiList, MJ_Base::CARD _wang)
 {
-    _g = 0;
-    _p = 0;
-    _c = 0;
-    _h = 0;
-
-    memset(this->paiList, 0, sizeof(this->paiList));
-    memset(this->HuList, 0, sizeof(this->HuList));
+    MJ_Base::init();
+    memset(this->cHuList, 0, sizeof(this->cHuList));
     memset(this->cGangList, 0, sizeof(this->cGangList));
     memset(this->cPengList, 0, sizeof(this->cPengList));
     memset(this->cChiList, 0, sizeof(this->cChiList));
-    memset(this->gang, 0, sizeof(this->gang));
-    memset(this->peng, 0, sizeof(this->peng));
-    memset(this->chi, 0, sizeof(this->chi));
 
     this->wang = _wang;
-    this->NewCard = MJ_noCard;
 
     this->paiCount = strlen(_paiList);
     if(this->paiCount > 13)
         throw(0);
     memcpy(this->paiList, _paiList, this->paiCount);
     MJ_sort(this->paiList, this->paiCount);
+
+    // 分析胡杠碰吃
+//    _L cHuCount;
+//    _L cPengCount;
+//    _L cGangCount;
+//    _L cChiCount;
+    analysis();
+    cChiCount = cChi();
+    cPengCount = cPeng();
+    cGangCount = cGang();
+    cHuCount = cHu();
 
 #ifdef DEBUG
     cout << "*初始化游戏- ： "  << this->paiList << "牌张数:" << this->paiCount << endl;
@@ -136,8 +138,22 @@ void MJ_Player::addCard(MJ_Base::CARD nc)
 
 int MJ_Player::ChuPai(MJ_Base::CARD c)
 {
-    this->paiRecList[this->paiRecCount++] = c;
-    return DelCard(c);
+    int ret;
+
+    ret =  DelCard(c);
+    if(ret == 0)
+    {
+        this->MJ_sort(this->paiList, this->paiCount+1);
+        this->paiRecList[this->paiRecCount++] = c;
+
+        analysis();
+        cChiCount = cChi();
+        cPengCount = cPeng();
+        cGangCount = cGang();
+        cHuCount = cHu();
+    }
+
+    return ret;
 }
 
 int MJ_Player::DelCard(MJ_Base::CARD card)
@@ -160,19 +176,12 @@ int MJ_Player::DelCard(MJ_Base::CARD card)
 
     if (!flag)
     {
-#ifdef DEBUG
-        cout << "*删除不成功." << __FUNCTION__ << endl;
-        cout << "*删除一张牌-：" << card << " " <<  this->paiList << " " << this->paiCount << endl;
-#endif
         return -1;
     }
 
     this->paiList[i-1] = MJ_noCard;
     this->paiCount -= 1;
 
-#ifdef DEBUG
-        cout << "*删除一张牌-：" << card << " " <<  this->paiList << " " << this->paiCount << endl;
-#endif
     return 0;
 }
 
@@ -366,6 +375,15 @@ int MJ_Player::cGang()
 
     this->cGangCount = count;
     return count;
+}
+
+int MJ_Player::cHu()
+{
+    this->_h = 0;
+    for(auto it : this->AnalyResults)
+    {
+        this->cHuList[_h++] = it.first;
+    }
 }
 
 int MJ_Player::analysis()
@@ -694,9 +712,6 @@ int MJ_Player::analysis()
                 //if(it != AnalyResults.end())
                 {
                     AnalyResults[allTing[i]] = analy;
-#ifdef DEBUG
-//      analy.printResult();                }
-#endif
                 }
             }
         }
@@ -706,6 +721,45 @@ int MJ_Player::analysis()
     return 0;
 }
 
+// 返回分析好的 胡杠碰吃 结果
+int MJ_Player::getChiList(CARD *lst, int c) const
+{
+    if(lst == nullptr)
+        return 0;
+    memcpy(lst, this->cChiList, c);
+
+    return this->cChiCount;
+}
+
+int MJ_Player::getPengList(CARD *lst, int c) const
+{
+    if(lst == nullptr)
+        return 0;
+    memcpy(lst, this->cPengList, c);
+
+    return this->cPengCount;
+}
+
+int MJ_Player::getGangList(CARD *lst, int c) const
+{
+    if(lst == nullptr)
+        return 0;
+    memcpy(lst, this->cGangList, c);
+
+    return this->cGangCount;
+}
+
+int MJ_Player::getHuList(CARD *lst, int c) const
+{
+    if(lst == nullptr)
+        return 0;
+    memcpy(lst, this->cHuList, c);
+
+    return this->cHuCount;
+}
+
+//  胡杠碰吃操作，
+//  重写MJ_Base::
 int MJ_Player::Chi(MJ_Base::CARD card, pCCARD ll)
 {
     for(int i=0; i<3; i++)
@@ -751,6 +805,7 @@ int MJ_Player::Hu(CARD card, pCCARD ll)
     return 0;
 }
 
+// 上家出的牌可以吃，但是怎么吃？返回吃法
 int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[3])
 {
     return 0;
@@ -867,7 +922,7 @@ void MJ_Player::printTest()
     cout << "* 可以吃：" << this->cChiList << endl;
     cout << "* 可以碰：" << this->cPengList << endl;
     cout << "* 可以杠：" << this->cGangList << endl;
-    cout << "* 可以胡：" << this->HuList << endl;
+    cout << "* 可以胡：" << this->cHuList << endl;
     cout << "* 可以胡：";
     for(auto it : AnalyResults) {
         it.second.calc_BeiShu(*this, it.first, MJ_AnalyResult::F_JiePao);

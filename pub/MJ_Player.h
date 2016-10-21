@@ -14,13 +14,14 @@ class MJ_Player : public MJ_Base
 
 private:
 
-    CARD HuList[16];
+    CARD cHuList[16];
     CARD cChiList[16];
     CARD cGangList[8];
     CARD cPengList[8];
 
     CARD wang;
 
+    _L cHuCount;
     _L cPengCount;
     _L cGangCount;
     _L cChiCount;
@@ -41,7 +42,7 @@ public:
     void init(pCCARD _paiList, CARD _wang) ;
 
     // 把抓到的牌放入牌列
-    void addCard(CARD newCard) ;
+    void addCard(CARD newCard);
 
     int ChuPai(CARD c) override;
     // 删掉一张牌（出牌，吃-3， 碰-3， 杠-3）
@@ -53,7 +54,13 @@ public:
     int cChi() ;
     int cPeng() ;
     int cGang() ;
+    int cHu();
     int analysis();
+
+    int getChiList(CARD *lst, int c)const;
+    int getPengList(CARD *lst, int c)const;
+    int getGangList(CARD *lst, int c)const;
+    int getHuList(CARD *lst, int c)const;
 
     int Hu(CARD c, pCCARD ll) override;
     int Gang(CARD c) override;
