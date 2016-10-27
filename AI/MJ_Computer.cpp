@@ -1,5 +1,7 @@
 #include "MJ_Computer.h"
 
+#include <QDebug>
+
 MJ_Computer::MJ_Computer(QObject *parent) : QObject(parent)
 {
     this->player = new MJ_Player();
@@ -9,6 +11,11 @@ MJ_Computer::MJ_Computer(QObject *parent) : QObject(parent)
 MJ_Computer::~MJ_Computer()
 {
 
+}
+
+void MJ_Computer::init()
+{
+    this->player->init("", MJ_Base::MJ_noCard);
 }
 
 void MJ_Computer::setID(int _id)
@@ -39,7 +46,9 @@ void MJ_Computer::resl_init(MJ_response &resp)
         req.setSenderID(this->Id);
 
         request->req_send(req);
+        qDebug() << "Computer::resl_init " << recvID << "  " << this->Id;
     }
+
 }
 
 void MJ_Computer::resl_wait(MJ_response &resp)
@@ -69,6 +78,8 @@ void MJ_Computer::resl_Hu(MJ_response &resp)
 
 void MJ_Computer::resl_FaPai(MJ_response &resp)
 {
+    qDebug() << "Computer::resl_FaPai card=" << resp.getCard() << "id = " << this->Id << " who:"
+             << resp.getWho() << "recvID = " << resp.getSendTo();
     int recvID = resp.getSendTo();
     if(recvID == this->Id)
     {

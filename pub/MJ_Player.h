@@ -6,8 +6,6 @@
 #include "MJ_AnalyResult.h"
 #include "MJ_Base.h"
 
-#define DEBUG
-
 class MJ_Player : public MJ_Base
 {
     friend class MJ_AnalyResult;
@@ -39,7 +37,7 @@ public:
     MJ_Player();
 
     // 开局初始化 并 分析 本家局势
-    void init(pCCARD _paiList, CARD _wang) ;
+    void init(pCCARD _paiList, CARD _wang) override;
 
     // 把抓到的牌放入牌列
     void addCard(CARD newCard);
@@ -57,15 +55,18 @@ public:
     int cHu();
     int analysis();
 
-    int getChiList(CARD *lst, int c)const;
-    int getPengList(CARD *lst, int c)const;
-    int getGangList(CARD *lst, int c)const;
-    int getHuList(CARD *lst, int c)const;
+    int getCanChiList(CARD *lst, int c)const;
+    int getCanPengList(CARD *lst, int c)const;
+    int getCanGangList(CARD *lst, int c)const;
+    int getCanHuList(CARD *lst, int c)const;
 
     int Hu(CARD c, pCCARD ll) override;
     int Gang(CARD c) override;
     int Peng(CARD c) override;
     int Chi(CARD c, pCCARD ll) override;
+    int UndoGang() override;
+    int UndoPeng() override;
+    int UndoChi() override;
 
 
     //根据一张牌 获取到可以吃的牌组合。

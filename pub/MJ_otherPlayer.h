@@ -11,12 +11,20 @@ public:
 
     void init();
 
+    void init(pCCARD lst, CARD wang);
     int Gang(CARD c) override;
     int Peng(CARD c) override;
     int Chi(CARD c, pCCARD ll) override;
     int Hu(CARD c, pCCARD ll) override;
 
+    int UndoGang() override;
+    int UndoPeng() override;
+    int UndoChi() override;
+
     int ChuPai(CARD c) override;
+
+public:
+
 };
 
 #endif // MJ_OTHERPLAYER_H

@@ -24,6 +24,12 @@ public:
         ST_Ready = 1, ST_Wait, ST_OffLine
     };
 
+    enum GPC_SEQ{
+        SEQ_GANG = 0x01,
+        SEQ_PENG,
+        SEQ_CHI
+    };
+
 protected:
     STAT stat;//玩家状态
     int x_ID;//座位号
@@ -40,6 +46,8 @@ protected:
     CARD gang[8];
     CARD peng[8];
     CARD chi[16];
+    int gpc_seq[8];//杠碰吃 顺序
+    int gpc_seq_count;
     CARD NewCard;
 
     _L _g;
@@ -49,21 +57,42 @@ protected:
 public:
     MJ_Base();
     void init();
+    void setNewCard(CARD c);
 
     virtual ~MJ_Base();
 
+    virtual void init(pCCARD lst, CARD wang) = 0;
     virtual int Hu(CARD c, pCCARD ll) = 0;
     virtual int Gang(CARD c) = 0;
     virtual int Peng(CARD c) = 0;
     virtual int Chi(CARD c, pCCARD ll) = 0;
+    virtual int UndoGang() = 0;
+    virtual int UndoPeng() = 0;
+    virtual int UndoChi() = 0;
 
     virtual int ChuPai(CARD c) = 0;
+
+public:
+    // 返回长度
+    int getPaiList(CARD *cds)const;
+    int getPaiRecList(CARD *cds)const;
+
+    int getGang(CARD *cds)const;
+    int getPeng(CARD *cds)const;
+    int getChi(CARD *cds)const;
+
+    int getGPCseq(int *cds)const;
+
+    int setPaiCount(int count);
+    int setPaiList(CARD *lst);
+
+    bool getNewCard(CARD &cd);
 };
 
-#define isFENG(card) ((card) <= MJ_Player::MJ_DONG && (card) >= MJ_Player::MJ_BAN)
-#define isTONG(card) ((card) >= MJ_Player::MJ_JIUTONG && (card) <= MJ_Player::MJ_YITONG)
-#define isTIAO(card) ((card) >= MJ_Player::MJ_JIUTIAO && (card) <= MJ_Player::MJ_YITIAO)
-#define isWAN(card) ((card) >= MJ_Player::MJ_JIUWAN && (card) <= MJ_Player::MJ_YIWAN)
+#define isFENG(card) ((card) <= MJ_Base::MJ_DONG && (card) >= MJ_Base::MJ_BAN)
+#define isTONG(card) ((card) >= MJ_Base::MJ_JIUTONG && (card) <= MJ_Base::MJ_YITONG)
+#define isTIAO(card) ((card) >= MJ_Base::MJ_JIUTIAO && (card) <= MJ_Base::MJ_YITIAO)
+#define isWAN(card) ((card) >= MJ_Base::MJ_JIUWAN && (card) <= MJ_Base::MJ_YIWAN)
 
 //  判断是一张合法的牌
 #define isMJCARD(card) (isFENG(card) || isTONG(card) || isTIAO(card) || isWAN(card))

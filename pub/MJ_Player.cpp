@@ -81,7 +81,7 @@ bool MJ_Player::hasKanZhang(MJ_Base::CARD *li, MJ_Base::CARD c, CARD **res)
 
 MJ_Player::MJ_Player()
 {
-
+    MJ_Base::init();
 }
 
 void MJ_Player::init(MJ_Player::pCCARD _paiList, MJ_Base::CARD _wang)
@@ -257,17 +257,10 @@ int MJ_Player::cChi()
 
     if(count <= 1)// 少于两张不同的牌 可以不用判断了
     {
-#ifdef DEBUG
-        cout << "*计算可吃-：没牌可吃。" << this->paiList << endl;
-#endif
         //  不要忘记更新到结果集中
         memset(this->cChiList, 0, sizeof(this->cChiList));
         return 0;
     }
-
-#ifdef DEBUG
-    cout << "*计算可吃-：去重后：" << cards << endl;
-#endif
 
     int cLen = 0;
     for(auto i=0; i<count - 1; i++)
@@ -722,7 +715,7 @@ int MJ_Player::analysis()
 }
 
 // 返回分析好的 胡杠碰吃 结果
-int MJ_Player::getChiList(CARD *lst, int c) const
+int MJ_Player::getCanChiList(CARD *lst, int c) const
 {
     if(lst == nullptr)
         return 0;
@@ -731,7 +724,7 @@ int MJ_Player::getChiList(CARD *lst, int c) const
     return this->cChiCount;
 }
 
-int MJ_Player::getPengList(CARD *lst, int c) const
+int MJ_Player::getCanPengList(CARD *lst, int c) const
 {
     if(lst == nullptr)
         return 0;
@@ -740,7 +733,7 @@ int MJ_Player::getPengList(CARD *lst, int c) const
     return this->cPengCount;
 }
 
-int MJ_Player::getGangList(CARD *lst, int c) const
+int MJ_Player::getCanGangList(CARD *lst, int c) const
 {
     if(lst == nullptr)
         return 0;
@@ -749,7 +742,7 @@ int MJ_Player::getGangList(CARD *lst, int c) const
     return this->cGangCount;
 }
 
-int MJ_Player::getHuList(CARD *lst, int c) const
+int MJ_Player::getCanHuList(CARD *lst, int c) const
 {
     if(lst == nullptr)
         return 0;
@@ -769,10 +762,25 @@ int MJ_Player::Chi(MJ_Base::CARD card, pCCARD ll)
 
         this->chi[_c++] = ll[i];
     }
-
+    this->gpc_seq[this->gpc_seq_count++] = SEQ_CHI;
     this->MJ_sort(this->paiList, this->paiCount);
 
     return 0;
+}
+
+int MJ_Player::UndoGang()
+{
+
+}
+
+int MJ_Player::UndoPeng()
+{
+
+}
+
+int MJ_Player::UndoChi()
+{
+
 }
 
 int MJ_Player::Peng(MJ_Base::CARD card)
@@ -781,6 +789,7 @@ int MJ_Player::Peng(MJ_Base::CARD card)
     this->DelCard(card);
 
     this->peng[_p++] = card;
+    this->gpc_seq[this->gpc_seq_count++] = SEQ_PENG;
 
     this->MJ_sort(this->paiList, this->paiCount);
 
@@ -794,6 +803,7 @@ int MJ_Player::Gang(MJ_Base::CARD card)
     this->DelCard(card);
 
     this->gang[_g++] = card;
+    this->gpc_seq[this->gpc_seq_count++] = SEQ_GANG;
 
     this->MJ_sort(this->paiList, this->paiCount);
 

@@ -15,6 +15,7 @@ public:
     explicit MJ_Computer(QObject *parent = 0);
     ~MJ_Computer();
 
+    void init();
     void setID(int _id);
 
 private:
