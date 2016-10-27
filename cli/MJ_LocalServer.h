@@ -14,8 +14,10 @@
 class MJ_LocalServer : public QObject
 {
     Q_OBJECT
-public:
     explicit MJ_LocalServer(QObject *parent = 0);
+public:
+    static MJ_LocalServer *Instance;
+    static MJ_LocalServer *getInstance();
     ~MJ_LocalServer();
 
     void send(MJ_response &);

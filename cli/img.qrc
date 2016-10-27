@@ -1,1 +1,44 @@
-<RCC/>
+<RCC>
+    <qresource prefix="/">
+        <file>img/bg_clock.png</file>
+        <file>img/bai.png</file>
+        <file>img/bei.png</file>
+        <file>img/bottom.png</file>
+        <file>img/dong.png</file>
+        <file>img/fa.png</file>
+        <file>img/nan.png</file>
+        <file>img/tiao_1.png</file>
+        <file>img/tiao_2.png</file>
+        <file>img/tiao_3.png</file>
+        <file>img/tiao_4.png</file>
+        <file>img/tiao_5.png</file>
+        <file>img/tiao_6.png</file>
+        <file>img/tiao_7.png</file>
+        <file>img/tiao_8.png</file>
+        <file>img/tiao_9.png</file>
+        <file>img/tong_1.png</file>
+        <file>img/tong_2.png</file>
+        <file>img/tong_3.png</file>
+        <file>img/tong_4.png</file>
+        <file>img/tong_5.png</file>
+        <file>img/tong_6.png</file>
+        <file>img/tong_7.png</file>
+        <file>img/tong_8.png</file>
+        <file>img/tong_9.png</file>
+        <file>img/top.png</file>
+        <file>img/w_1.png</file>
+        <file>img/w_2.png</file>
+        <file>img/w_3.png</file>
+        <file>img/w_4.png</file>
+        <file>img/w_5.png</file>
+        <file>img/w_6.png</file>
+        <file>img/w_7.png</file>
+        <file>img/w_8.png</file>
+        <file>img/w_9.png</file>
+        <file>img/xi.png</file>
+        <file>img/zhong.png</file>
+        <file>img/duimen.png</file>
+        <file>img/shangjia.png</file>
+        <file>img/xiajia.png</file>
+    </qresource>
+</RCC>

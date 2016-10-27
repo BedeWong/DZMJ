@@ -1,5 +1,7 @@
 #include "MJ_LocalServer.h"
 
+#include <QDebug>
+
 static MJ_Base::CARD cardSet[] = {
     'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',//万
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',//条
@@ -22,6 +24,9 @@ static MJ_Base::CARD cardSet[] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G'
 };
 
+//  init static instance
+MJ_LocalServer *MJ_LocalServer::Instance = nullptr;
+
 MJ_LocalServer::MJ_LocalServer(QObject *parent) : QObject(parent)
 {
     for(auto i=0; i<4; i++)
@@ -35,8 +40,21 @@ MJ_LocalServer::MJ_LocalServer(QObject *parent) : QObject(parent)
     memset(this->paiList, 0, this->paiCount);
 
     stat = this->SVR_normal;//正常模式
+
+    tmChuPai = new QTimer(this);
+    connect(this->tmChuPai, SIGNAL(timeout()), this, SLOT(tmChuPaiSlot()), Qt::QueuedConnection);
     tmOut = new QTimer(this);
     connect(this->tmOut, SIGNAL(timeout()), this, SLOT(tmOutSlot()), Qt::QueuedConnection);
+}
+
+MJ_LocalServer *MJ_LocalServer::getInstance()
+{
+    if(Instance == nullptr)
+    {
+        Instance = new MJ_LocalServer();
+    }
+
+    return Instance;
 }
 
 MJ_LocalServer::~MJ_LocalServer()
@@ -112,9 +130,17 @@ void MJ_LocalServer::start()
     }
 
     this->member[0]->init(cards[0], this->wang);
-    this->member[1]->init(cards[0], this->wang);
-    this->member[2]->init(cards[0], this->wang);
-    this->member[3]->init(cards[0], this->wang);
+    this->member[1]->init(cards[1], this->wang);
+    this->member[2]->init(cards[2], this->wang);
+    this->member[3]->init(cards[3], this->wang);
+
+    qDebug() << "svr:  zhuangid " << this->zhuang_id << "  curid" << this->cur_id;
+    qDebug() << "svr:  maxpaiCount:" << this->maxPaiCount << "  paicount" << this->paiCount;
+    qDebug() << "svr:  begin:" << (char*)cards[0] << this->wang;
+    qDebug() << "svr:  begin:" << (char*)cards[1] << this->wang;
+    qDebug() << "svr:  begin:" << (char*)cards[2] << this->wang;
+    qDebug() << "svr:  begin:" << (char*)cards[3] << this->wang;
+    qDebug() << "svr: all pai:" << this->paiList << endl;
 
     // 发送开局消息
     MJ_response resp;
@@ -157,12 +183,15 @@ void MJ_LocalServer::faPai()
     this->card = this->paiList[paiCount++];
 
     resp.setSendTo(cur_id);
+    resp.setWho(cur_id);
     resp.setType(MJ_response::T_FaPai);
     resp.setCard(this->card);
 
     send(resp);
 
-    this->tmChuPai->start(15000);//出牌15秒
+    this->tmChuPai->start(8000);//出牌8秒
+
+    qDebug() << "svr   MJ_LocalServer::faPai(): id = " << cur_id << endl;
 }
 
 void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
@@ -175,7 +204,15 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
     MJ_response resp;
     resp.setType(MJ_response::T_Ok);
     resp.setSendTo(senderID);
+    send(resp);    
+
+    //通知所有玩家，某玩家出了一张牌
+    resp.setType(MJ_response::T_ChuPai);
+    resp.setCard(cd);
+    resp.setWho(senderID);
+    resp.setSendTo(MJ_response::SDT_Broadcast);
     send(resp);
+    qDebug() << "svr :resl_chuPai SDT_Broadcast ok";
 
     cur_id = senderID;
     mem_policy[senderID] = P_None;
@@ -222,26 +259,21 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
         this->stat = SVR_vote;//等待抉择
     }
 
-    //通知所有玩家，某玩家出了一张牌
-    resp.setType(MJ_response::T_ChuPai);
-    resp.setCard(cd);
-    resp.setWho(senderID);
-    resp.setSendTo(MJ_response::SDT_Broadcast);
-    send(resp);
-
     if(this->stat == SVR_vote) // 本桌有玩家可以 胡杠碰吃
     {
+        qDebug() << "svr  resl_FaPai(): need wait!  stat = " << this->stat;
         current_policy = P_None;
         resp.setType(MJ_response::T_Wait);
         resp.setWho(senderID);
         resp.setSendTo(MJ_response::SDT_Broadcast);
         send(resp);
 
-        this->tmOut->start(10000);//10s选择时间
+        this->tmOut->start(6000);//6s选择时间
         f_HGPC_valid = true;
     }
     else if(this->stat == SVR_normal) // 继续发牌
     {
+        qDebug() << "svr  resl_ChuPai, continue FaPai";
         cur_id ++;
         cur_id %= 4;
         this->faPai();
@@ -260,7 +292,7 @@ void MJ_LocalServer::resl_HGPCList(MJ_RequestData &request)
 
     if((wj_ready & 0x0f) != 0x0f)
     {
-        wj_ready |= senderID + 1;
+        wj_ready |= 1 << senderID;
     }
 
     MJ_Base::CARD hu[8] = {0};
@@ -274,6 +306,10 @@ void MJ_LocalServer::resl_HGPCList(MJ_RequestData &request)
     member[senderID]->setcPengList(p);
     member[senderID]->setcGangList(g);
     member[senderID]->setcHuList(hu);
+
+    qDebug() << "svr   recv HGPCList:" << hu << " " << g << " " << p << " " << c;
+    qDebug() << "svr  wj_ready:" << wj_ready<< endl;
+
 }
 
 void MJ_LocalServer::resl_Hu(MJ_RequestData &req)
@@ -364,7 +400,7 @@ void MJ_LocalServer::resl_Gang(MJ_RequestData &req)
 
              resp.setType(MJ_response::T_ChuPai);
              resp.setSendTo(MJ_response::SDT_Broadcast);
-             resp.setWho(senderID);
+             resp.setWho(cur_id);
 
              send(resp);
          }
@@ -626,53 +662,65 @@ void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
 void MJ_LocalServer::RecvSlot(MJ_RequestData request)
 {
     int type = request.getType();
-//    int senderID = request.getSenderID();
+    int senderID = request.getSenderID();
 
+    qDebug() << "svr RecvSlot senderID" << senderID;
     switch(type)
     {
     case MJ_RequestData::R_Init:
+        qDebug() << "svr RecvSlot type" << "R_Init";
         this->start();
         break;
 
     case MJ_RequestData::R_HGPCList:
+        qDebug() << "svr RecvSlot type" << "R_HGPCList";
         this->resl_HGPCList(request);
         if((wj_ready & 0x0f) == 0x0f)
             this->faPai();
         break;
 
     case MJ_RequestData::R_ChuPai:
+        qDebug() << "svr RecvSlot type" << "R_ChuPai";
         this->resl_chuPai(request);
         break;
 
     case MJ_RequestData::R_Hu:
+        qDebug() << "svr RecvSlot type" << "R_Hu";
         this->resl_Hu(request);
         break;
 
     case MJ_RequestData::R_Gang:
+        qDebug() << "svr RecvSlot type" << "R_Gang";
         this->resl_Gang(request);
         break;
 
     case MJ_RequestData::R_Peng:
+        qDebug() << "svr RecvSlot type" << "R_Peng";
         this->resl_Peng(request);
         break;
 
     case MJ_RequestData::R_Chi:
+        qDebug() << "svr RecvSlot type" << "R_Chi";
         this->resl_Chi(request);
         break;
 
     case MJ_RequestData::R_CanCel:
+        qDebug() << "svr RecvSlot type" << "R_CanCel";
         this->resl_Cancel(request);
         break;
 
     case MJ_RequestData::R_AnGang:
+        qDebug() << "svr RecvSlot type" << "R_AnGang";
         this->resl_AnGang(request);
         break;
 
     case MJ_RequestData::R_BuGang:
+        qDebug() << "svr RecvSlot type" << "R_BuGang";
         this->resl_BuGang(request);
         break;
 
     default: // 出错了！
+        qDebug() << "svr RecvSlot type" << "default";
         break;
     }
 }
@@ -701,7 +749,10 @@ void MJ_LocalServer::tmOutSlot()
 
 void MJ_LocalServer::tmChuPaiSlot()
 {
-    this->member[cur_id]->DelCard(this->card);//  默认出牌
+    //this->member[cur_id]->DelCard(this->card);//  默认出牌
+    qDebug() << "svr MJ_LocalServer::tmChuPaiSlot:";
+    qDebug() << "   cur_id:" << cur_id;
+    qDebug() << "   card：" << this->card;
 
     MJ_RequestData req(cur_id);
     req.setType(MJ_RequestData::R_ChuPai);
