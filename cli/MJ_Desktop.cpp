@@ -113,21 +113,21 @@ void MJ_Desktop::init_widgets()
     int x = this->size().width();
     int y = this->size().height();
 
-    this->self_widget->setSize(QSize(x*0.7, y/6));
+    this->self_widget->setSize(QSize(x*0.6, y/6));
     this->self_widget->move((x-this->self_widget->width()) / 2,
                             y - this->self_widget->height());
     qDebug() << this->self_widget->geometry();
 
-    this->DuiMen_widget->setSize(QSize(x*0.7, y/6));
+    this->DuiMen_widget->setSize(QSize(x*0.6, y/6));
     this->DuiMen_widget->move((x-this->self_widget->width())/2, 0);
     qDebug() << this->DuiMen_widget->geometry();
 
-    this->XiaJia_widget->setSize(QSize(x/6, y*0.7));
+    this->XiaJia_widget->setSize(QSize(x/6, y*0.6));
     this->XiaJia_widget->move(x - this->XiaJia_widget->width() + this->clock_wdiget->width(),
                               (y - this->XiaJia_widget->height()) / 2);
     qDebug() << this->XiaJia_widget->geometry();
 
-    this->ShangJia_widget->setSize(QSize(x/6, y*0.7));
+    this->ShangJia_widget->setSize(QSize(x/6, y*0.6));
     this->ShangJia_widget->move(0, (this->height()-this->ShangJia_widget->height()) / 2);
     qDebug() << this->ShangJia_widget->geometry();
 
@@ -216,8 +216,12 @@ void MJ_Desktop::resl_wait(MJ_response &resp)
     int recverId = resp.getSendTo();//recverID通常是4，MJ_response::SDT_Broadcast
     MJ_Base::CARD card = resp.getCard();//刚才[who]出的牌
 
+
+    this->s_card = card;
     this->s_stat = S_None;
     this->s_hgpc = false;
+    this->s_id = who;   // 保存谁出的牌，吃[杠碰胡]时可以让他撤销
+
     //  定时 6s 不闪
     this->clock_wdiget->clockStart(0, 6, false);
 
@@ -264,18 +268,23 @@ void MJ_Desktop::resl_Chi(MJ_response &resp)
     int who = resp.getWho();
     int recverId = resp.getSendTo();
 
-    this->s_stat = S_CHI;
-    this->s_hgpc = true;
-    this->s_id   = who;
-
     MJ_Base::CARD _chi[4] = {0};
     resp.getChi(_chi);
+
     if(who == this->ID)
     {
         this->self->Chi(resp.getCard(), _chi);
     }
     else
         this->player[who]->Chi(resp.getCard(), _chi);
+
+    // 撤销上一次的动作（本次撤销 玩家的出牌）
+    this->disCard_Widget[this->s_id]->undo();
+
+    this->s_stat = S_CHI;
+    this->s_hgpc = true;
+    this->s_id   = who;
+
     /*********
      *    更新界面
      */
@@ -291,16 +300,23 @@ void MJ_Desktop::resl_Peng(MJ_response &resp)
     {
         this->player[this->s_id]->UndoChi();
     }
+    else
+    {
+        this->disCard_Widget[this->s_id]->undo();
+    }
 
-    this->s_stat = S_PENG;
-    this->s_hgpc = true;
-    this->s_id   = who;
     if(who == this->ID)
     {
         this->self->Peng(resp.getCard());
     }
     else
         this->player[who]->Peng(resp.getCard());
+
+
+    this->s_stat = S_PENG;
+    this->s_hgpc = true;
+    this->s_id   = who;
+
     /*********
      *    更新界面
      */
@@ -317,9 +333,13 @@ void MJ_Desktop::resl_Gang(MJ_response &resp)
         this->player[this->s_id]->UndoChi();
     }
     //  如果有玩家碰了这张牌，err
-    if(this->s_hgpc && this->s_stat == S_PENG)
+    else if(this->s_hgpc && this->s_stat == S_PENG)
     {
 
+    }
+    else
+    {
+        this->disCard_Widget[this->s_id]->undo();
     }
 
     this->s_stat = S_GANG;
@@ -353,6 +373,10 @@ void MJ_Desktop::resl_Hu(MJ_response &resp)
     else if(this->s_hgpc && this->s_stat == S_GANG)
     {
         this->player[this->s_id]->UndoGang();
+    }
+    else
+    {
+        this->disCard_Widget[this->s_id]->undo();
     }
 
     this->s_stat = S_HU;
@@ -399,6 +423,7 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
             /***
              *  显示可胡牌，杠牌窗口
              */
+            this->s_card  = self_newCard;
             this->HGPC_widget->hgpc_show(hg_stat);
         }
     }
@@ -482,6 +507,7 @@ void MJ_Desktop::resl_ChuPai(MJ_response &resp)
     }
     // 添加到出过的牌 窗口
     this->disCard_Widget[who]->addCard(card);
+    this->HGPC_widget->hide();
     update();
     qDebug() << "_Desktop::resl_ChuPai:" << " endl" << endl;
 }
@@ -591,6 +617,41 @@ void MJ_Desktop::HGPCWidgetSlot()
 {
     int result = HGPC_widget->getResult();
     qDebug() << "_Desktop::HGPCWidgetSlot:" << result;
+
+    MJ_RequestData req(this->ID);
+    switch(result)
+    {
+    case MJ_HGPCWidget::RES_HU:
+        req.setType(MJ_RequestData::R_Hu);
+        qDebug() << QString::fromLocal8Bit(" 我方胡牌：") << this->s_card;
+        break;
+    case MJ_HGPCWidget::RES_GANG:
+        req.setType(MJ_RequestData::R_Gang);
+        qDebug() << QString::fromLocal8Bit(" 我方杠牌：") << this->s_card;
+        break;
+    case MJ_HGPCWidget::RES_PENG:
+        req.setType(MJ_RequestData::R_Peng);
+        qDebug() << QString::fromLocal8Bit(" 我方碰牌：") << this->s_card;
+        break;
+    case MJ_HGPCWidget::RES_CHI:
+        {
+            req.setType(MJ_RequestData::R_Chi);
+            MJ_Base::CARD cds[4] = {0};
+            this->HGPC_widget->getChiSelected(cds);
+            req.setChi(cds);
+            qDebug() << QString::fromLocal8Bit(" 我方吃牌：") << cds;
+        }
+        break;
+    //case MJ_HGPCWidget::RES_CANCEL:
+    default:
+        req.setType(MJ_RequestData::R_CanCel);
+        qDebug() << QString::fromLocal8Bit(" 我方过：") << this->s_card;
+        break;
+    }
+    req.setCard(this->s_card);
+    req.setSenderID(this->ID);
+
+    this->request->req_send(req);
 }
 
 void MJ_Desktop::startButtonClicked(bool)

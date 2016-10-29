@@ -855,11 +855,13 @@ int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[4])
     if(res == nullptr)
         return -1;
 
-    CARD a, b;
+    CARD a, b, cd;
     int count = 0;
 
-    a = card + 2;
-    b = card + 1;
+    if(card == MJ_Base::MJ_ZHONG)
+        cd = this->wang;
+    a = cd + 2;
+    b = cd + 1;
     // abc   789
     if(isMJCARD(a) && isMJCARD(b))//是合法的牌
     {

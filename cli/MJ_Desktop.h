@@ -91,8 +91,9 @@ private:
     int cur_zhuapai;//当前要出牌玩家
 
     S_HGPC s_stat;  //保存一种状态，
-    bool s_hgpc;
+    bool s_hgpc;//已操作
     int s_id;//为谁保存状态
+    MJ_Base::CARD s_card;
     MJ_Base::CARD self_newCard;
 
     MJ_HGPCWidget *HGPC_widget;

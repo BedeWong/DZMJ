@@ -12,11 +12,11 @@ class MJ_HGPCWidget : public QWidget
     Q_OBJECT
 public:
     enum RESULT{   // 用于记录返回值
-        RES_HU = 0x01,
-        RES_GANG,
-        RES_PENG,
-        RES_CHI,
-        RES_CANCEL
+        RES_HU      = 0x1000,
+        RES_GANG    = 0x100,
+        RES_PENG    = 0x10,
+        RES_CHI     = 0x01,
+        RES_CANCEL  = 0x1000000
     };
 
 public:

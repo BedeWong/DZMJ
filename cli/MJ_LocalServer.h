@@ -40,7 +40,7 @@ private:
 signals:
     void responseSignal(MJ_response);
 
-    void _postToRecvSlot(MJ_RequestData request);  // 给自己发送，避免函数直接调用带来的不同步
+    void _postToRecvSlot(MJ_RequestData request);  // 给自己发送，避免函数直接调用带来的混乱
 
 public slots:
     void RecvSlot(MJ_RequestData request);
@@ -63,18 +63,18 @@ public:
     };
 
 private:
-    MJ_Player *member[4];
+    MJ_Player *player[4];
 
     int mem_policy[4];//存放每个玩家胡杠碰吃信息
-//    Policy max_policy;
-    int current_policy;
+    int current_policy;//Policy类型,保存当前级别最高的（胡>杠[碰]>吃）
     int current_policy_ID;
-    bool f_HGPC_valid;
+    bool f_HGPC_valid;//定义 胡杠碰吃 有效，有时候有可能响应或延迟问题导致下家已经发牌了，上家才送来碰牌消息
     bool BuGang_falg;
     MJ_Base::CARD chi[3];
 
     int cur_id;
     int zhuang_id;
+    int winner_id;
     MJ_Base::CARD wang;
     MJ_Base::CARD card;//最近发的一张牌
     int shaizi1, shaizi2;//色子
