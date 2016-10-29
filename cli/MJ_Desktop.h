@@ -67,6 +67,9 @@ private:
 public slots:
     void responseSlot(MJ_response response);
 
+    void selfWidgetSlot(MJ_Base::CARD cd);
+    void HGPCWidgetSlot();
+
 //    void tmChuPaiSLot();
 //    void tmWaitSlot();
 
@@ -91,9 +94,6 @@ private:
     bool s_hgpc;
     int s_id;//ÎªË­±£´æ×´Ì¬
     MJ_Base::CARD self_newCard;
-
-//    QTimer *tmChuPai;
-//    QTimer *tmWait;
 
     MJ_HGPCWidget *HGPC_widget;
     MJ_CLockWidget *clock_wdiget;

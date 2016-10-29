@@ -46,7 +46,7 @@ void MJ_HGPCWidget::setChiList(const MJ_Base::CARD (*ll)[4], int nCount)
     this->result = 0;
     this->selectChiWidget = new SelectChiwidget(nCount, this->pos(),
                                                 this->parentWidget());
-    connect(this->selectChiWidget, SIGNAL(finishSignal()), this, SLOT(ChiFinished()));
+    connect(this->selectChiWidget, SIGNAL(finishSignal()), this, SLOT(selectChiFinished()));
 
     ChiwidgetItem *newItem;
     for(auto i=0; i<nCount; i++)
@@ -126,46 +126,76 @@ void MJ_HGPCWidget::hgpc_show(int stat)
 
 void MJ_HGPCWidget::HuClicked(bool)
 {
+    if(selectChiWidget != nullptr)
+    {
+        delete this->selectChiWidget;
+        this->selectChiWidget = nullptr;
+    }
     this->hide();
     result = RES_HU;
+    emit hgpc_finished();
 }
 
 void MJ_HGPCWidget::GangClicked(bool)
 {
+    if(selectChiWidget != nullptr)
+    {
+        delete this->selectChiWidget;
+        this->selectChiWidget = nullptr;
+    }
     this->hide();
     result = RES_GANG;
+    emit hgpc_finished();
 }
 
 void MJ_HGPCWidget::ChiClicked(bool)
 {
     if(this->selectChiWidget != nullptr)
         this->selectChiWidget->show();
-    else
-        this->hide();
 
     return;
 }
 
-void MJ_HGPCWidget::ChiFinished()
+void MJ_HGPCWidget::selectChiFinished()
 {
     this->hide();
     this->selectChiWidget->getSelected(this->selectChi);
+    if(selectChiWidget != nullptr)
+    {
+        delete this->selectChiWidget;
+        this->selectChiWidget = nullptr;
+    }
     result = RES_CHI;
+    emit hgpc_finished();
 }
 
 void MJ_HGPCWidget::PengClicked(bool)
 {
+    if(selectChiWidget != nullptr)
+    {
+        delete this->selectChiWidget;
+        this->selectChiWidget = nullptr;
+    }
     this->hide();
     result = RES_PENG;
+    emit hgpc_finished();
 }
 
 void MJ_HGPCWidget::CancelClicked(bool)
 {
+    if(selectChiWidget != nullptr)
+    {
+        delete this->selectChiWidget;
+        this->selectChiWidget = nullptr;
+    }
     this->hide();
     result = RES_CANCEL;
+    emit hgpc_finished();
 }
 
-//select widget
+/*******  *****   *****
+    * select widget  *
+*/
 SelectChiwidget::SelectChiwidget(int nCount, QPoint pt, QWidget *parent) : QWidget(parent)
 {
     qDebug() << parent->pos();

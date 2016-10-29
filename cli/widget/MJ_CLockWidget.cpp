@@ -91,7 +91,7 @@ void MJ_CLockWidget::paintEvent(QPaintEvent *event)
     //  画四个三角形 平分这么窗口
     for(int i=0; i<4; i++)
     {
-        if(this->cur_id == i && this->timeout%2)
+        if(this->flicker && this->cur_id == i && this->timeout%2)
         {
             painter.setBrush(QBrush(QColor(240, 10, 10)));
         }

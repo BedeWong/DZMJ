@@ -30,8 +30,10 @@ private:
     void draw_GPC(QPainter &painter);
 
 signals:
+    void retClicked(MJ_Base::CARD cd);
 
 public slots:
+    void itemClicked(MJ_Base::CARD cd);
 
 private:
     enum DisplaySize{

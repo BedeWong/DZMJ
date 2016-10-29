@@ -2,6 +2,7 @@
 #include "MJ_AnalyResult.h"
 #include <cstring>
 #include <stack>
+#include <QDebug>
 
 #ifdef DEBUG
 
@@ -9,6 +10,33 @@
   using namespace std;
 
 #endif
+
+bool MJ_Player::inPaiList(MJ_Base::CARD c)
+{/*
+    char *b = this->paiList;
+    char *e = this->paiList + paiCount;
+    char *m;// = this->paiList + paiCount/2;
+
+    while(b < e)
+    {
+        m = b + (e-b) / 2;
+        if(*m == c)
+            return true;
+        else if(*m > c)
+        {
+            b = m+1;
+        }
+        else
+            e = m-1;
+    }
+    return false;*/
+    for(int i=0; i<paiCount; i++)
+    {
+        if(paiList[i] == c)
+            return true;
+    }
+    return false;
+}
 
 bool MJ_Player::hasSanLian(MJ_Base::CARD *li, MJ_Base::CARD c, CARD **res)
 {
@@ -100,17 +128,6 @@ void MJ_Player::init(MJ_Player::pCCARD _paiList, MJ_Base::CARD _wang)
     memcpy(this->paiList, _paiList, this->paiCount);
     MJ_sort(this->paiList, this->paiCount);
 
-    // 分析胡杠碰吃
-//    _L cHuCount;
-//    _L cPengCount;
-//    _L cGangCount;
-//    _L cChiCount;
-    analysis();
-    cChiCount = cChi();
-    cPengCount = cPeng();
-    cGangCount = cGang();
-    cHuCount = cHu();
-
 #ifdef DEBUG
     cout << "*初始化游戏- ： "  << this->paiList << "牌张数:" << this->paiCount << endl;
 #endif
@@ -144,13 +161,13 @@ int MJ_Player::ChuPai(MJ_Base::CARD c)
     if(ret == 0)
     {
         this->MJ_sort(this->paiList, this->paiCount+1);
-        this->paiRecList[this->paiRecCount++] = c;
+//        this->paiRecList[this->paiRecCount++] = c;
 
-        analysis();
-        cChiCount = cChi();
-        cPengCount = cPeng();
-        cGangCount = cGang();
-        cHuCount = cHu();
+//        analysis();
+//        cChiCount = cChi();
+//        cPengCount = cPeng();
+//        cGangCount = cGang();
+//        cHuCount = cHu();
     }
 
     return ret;
@@ -223,6 +240,7 @@ int MJ_Player::cChi()
     CARD cards[16] = {0};
     int count = 0;
 
+    memset(this->cChiList, 0, sizeof(this->cChiList));
     //  去重
     for(auto i=0; i<this->paiCount; i++)
     {
@@ -372,11 +390,12 @@ int MJ_Player::cGang()
 
 int MJ_Player::cHu()
 {
-    this->_h = 0;
+    cHuCount = 0;
     for(auto it : this->AnalyResults)
     {
-        this->cHuList[_h++] = it.first;
+        this->cHuList[cHuCount++] = it.first;
     }
+    return cHuCount;
 }
 
 int MJ_Player::analysis()
@@ -714,11 +733,26 @@ int MJ_Player::analysis()
     return 0;
 }
 
+void MJ_Player::AnalysisHGPC()
+{
+    analysis();
+    cChi();
+    cPeng();
+    cGang();
+    cHu();
+
+    qDebug() << __FUNCTION__ << __LINE__ << " :";
+    qDebug() << "\tcChiCount:" << cChiCount << " "
+             << "\tcPengCount:" << cPengCount << " "
+             << "\tcGangCount:" << cGangCount << " "
+             << "\tcHuCount:" << cHuCount << " ";
+}
+
 // 返回分析好的 胡杠碰吃 结果
 int MJ_Player::getCanChiList(CARD *lst, int c) const
 {
     if(lst == nullptr)
-        return 0;
+        return this->cChiCount;
     memcpy(lst, this->cChiList, c);
 
     return this->cChiCount;
@@ -727,7 +761,7 @@ int MJ_Player::getCanChiList(CARD *lst, int c) const
 int MJ_Player::getCanPengList(CARD *lst, int c) const
 {
     if(lst == nullptr)
-        return 0;
+        return this->cPengCount;
     memcpy(lst, this->cPengList, c);
 
     return this->cPengCount;
@@ -736,7 +770,7 @@ int MJ_Player::getCanPengList(CARD *lst, int c) const
 int MJ_Player::getCanGangList(CARD *lst, int c) const
 {
     if(lst == nullptr)
-        return 0;
+        return this->cGangCount;
     memcpy(lst, this->cGangList, c);
 
     return this->cGangCount;
@@ -745,7 +779,7 @@ int MJ_Player::getCanGangList(CARD *lst, int c) const
 int MJ_Player::getCanHuList(CARD *lst, int c) const
 {
     if(lst == nullptr)
-        return 0;
+        return this->cHuCount;
     memcpy(lst, this->cHuList, c);
 
     return this->cHuCount;
@@ -816,9 +850,98 @@ int MJ_Player::Hu(CARD card, pCCARD ll)
 }
 
 // 上家出的牌可以吃，但是怎么吃？返回吃法
-int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[3])
+int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[4])
 {
-    return 0;
+    if(res == nullptr)
+        return -1;
+
+    CARD a, b;
+    int count = 0;
+
+    a = card + 2;
+    b = card + 1;
+    // abc   789
+    if(isMJCARD(a) && isMJCARD(b))//是合法的牌
+    {
+        if(inPaiList(a) && inPaiList(b))//手上正好有这样的牌
+        {
+            res[count][0] = card;
+            res[count][1] = b;
+            res[count][2] = a;
+            count++;
+        }
+        if(inPaiList(b) && (a == this->wang) && inPaiList(MJ_Base::MJ_ZHONG))
+        {
+            res[count][0] = card;
+            res[count][1] = b;
+            res[count][2] = MJ_ZHONG;
+            count++;
+        }
+        if(inPaiList(a) && (b == this->wang) && inPaiList(MJ_ZHONG))
+        {
+            res[count][0] = card;
+            res[count][1] = MJ_ZHONG;
+            res[count][2] = a;
+            count++;
+        }
+    }
+
+    a = card - 1;
+    b = card + 1;
+    if(isMJCARD(a) && isMJCARD(b))
+    {
+        if(inPaiList(a) && inPaiList(b))
+        {
+            res[count][1] = card;
+            res[count][0] = a;
+            res[count][2] = b;
+            count++;
+        }
+        if(inPaiList(b) && (a == this->wang) && inPaiList(MJ_Base::MJ_ZHONG))
+        {
+            res[count][1] = card;
+            res[count][0] = MJ_ZHONG;
+            res[count][2] = b;
+            count++;
+        }
+        if(inPaiList(a) && (b == this->wang) && inPaiList(MJ_ZHONG))
+        {
+            res[count][1] = card;
+            res[count][0] = a;
+            res[count][2] = MJ_ZHONG;
+            count++;
+        }
+    }
+
+    a = card - 2;
+    b = card - 1;
+    if(isMJCARD(a) && isMJCARD(b))
+    {
+        if(inPaiList(a) && inPaiList(b))
+        {
+            res[count][2] = card;
+            res[count][0] = a;
+            res[count][1] = b;
+            count++;
+        }
+        if(inPaiList(b) && (a == this->wang) && inPaiList(MJ_Base::MJ_ZHONG))
+        {
+            res[count][2] = card;
+            res[count][0] = MJ_ZHONG;
+            res[count][1] = b;
+            count++;
+        }
+        if(inPaiList(a) && (b == this->wang) && inPaiList(MJ_ZHONG))
+        {
+            res[count][2] = card;
+            res[count][0] = a;
+            res[count][1] = MJ_ZHONG;
+            count++;
+        }
+    }
+
+
+    return count;
 }
 
 bool MJ_Player::testHu(MJ_Base::CARD c)
@@ -858,6 +981,8 @@ bool MJ_Player::testGang(MJ_Base::CARD c)
 
 bool MJ_Player::testChi(MJ_Base::CARD c)
 {
+    qDebug() << __FUNCTION__ << __LINE__ << "test card:" << c;
+    qDebug() << "\tcCount = " << cChiCount << ", chilist:" << this->cChiList;
     for(auto i=0; i<this->cChiCount; i++)
     {
         if(c == this->cChiList[i])
@@ -869,22 +994,42 @@ bool MJ_Player::testChi(MJ_Base::CARD c)
 
 int MJ_Player::setcHuList(MJ_Base::CARD _h[])
 {
-
+    if(_h == nullptr)
+       return -1;
+    int len = strlen(_h);
+    memcpy(this->cHuList, _h, 16);
+    this->cHuCount = len;
+    return 0;
 }
 
 int MJ_Player::setcGangList(MJ_Base::CARD _g[])
 {
-
+    if(_g == nullptr)
+        return -1;
+    int len = strlen(_g);
+    memcpy(this->cGangList, _g, 8);
+    this->cGangCount = len;
+    return 0;
 }
 
 int MJ_Player::setcPengList(MJ_Base::CARD _p[])
 {
-
+    if(_p == nullptr)
+            return -1;
+    int len = strlen(_p);
+    memcpy(this->cPengList, _p, 8);
+    this->cPengCount = len;
+    return 0;
 }
 
 int MJ_Player::setcChiList(MJ_Base::CARD _c[])
 {
-
+    if(_c == nullptr)
+        return -1;
+    int len = strlen(_c);
+    memcpy(this->cChiList, _c, 8);
+    this->cChiCount = len;
+    return 0;
 }
 
 int MJ_Player::copy_chiList(MJ_AnalyResult *to)

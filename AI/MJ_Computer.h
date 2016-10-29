@@ -2,6 +2,7 @@
 #define MJ_COMPUTER_H
 
 #include <QObject>
+#include <QTimer>
 
 #include "../pub/MJ_Player.h"
 #include "../cli/MJ_RequestLocal.h"
@@ -37,6 +38,8 @@ signals:
 public slots:
     void responseSlot(MJ_response response);
 
+    void tmSlot();
+
 public:
 
 private:
@@ -46,6 +49,9 @@ private:
     int Id;
     MJ_Base::CARD card;
     bool f_HGPC;
+
+    QTimer *tm;
+    MJ_response resp;
 };
 
 #endif // MJ_COMPUTER_H

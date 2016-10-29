@@ -33,6 +33,7 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event);
 
 signals:
+    void hgpc_finished();
 
 public slots:
     void hgpc_show(int stat);
@@ -40,7 +41,7 @@ public slots:
     void HuClicked(bool);
     void GangClicked(bool);
     void ChiClicked(bool);
-    void ChiFinished();
+    void selectChiFinished();
     void PengClicked(bool);
     void CancelClicked(bool);
 
@@ -59,8 +60,7 @@ private:
 };
 
 /***** *** *** *** *** ***
- *      widget Item
- *
+ *      widget Item *
  */
 #include "MJ_widgetBase.h"
 class ChiwidgetItem : public QWidget
@@ -84,8 +84,7 @@ private:
 };
 
 /******  ***  ***   ***
- *      弹出的 选择吃牌对话框
- *
+ *      弹出的 选择吃牌对话框 *
  */
 class SelectChiwidget : public QWidget
 {

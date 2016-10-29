@@ -13,7 +13,7 @@ class MJ_DiscardWidget : public QWidget
     Q_OBJECT
 public:
     enum SIZE{
-        Size_x = 580,
+        Size_x = 385,
         Size_y = 320
     };
 
@@ -22,6 +22,8 @@ public:
 
     void addCard(MJ_Base::CARD cd);
     void undo();
+
+    void clean();
 
     void setId(int _id);
 

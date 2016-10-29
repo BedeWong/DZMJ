@@ -34,8 +34,13 @@ public:
     void resl_AnGang(MJ_RequestData &);
     void resl_BuGang(MJ_RequestData &);
 
+private:
+    void _FaPaiRequest();
+
 signals:
     void responseSignal(MJ_response);
+
+    void _postToRecvSlot(MJ_RequestData request);  // 给自己发送，避免函数直接调用带来的不同步
 
 public slots:
     void RecvSlot(MJ_RequestData request);

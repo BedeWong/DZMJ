@@ -39,7 +39,9 @@ MJ_LocalServer::MJ_LocalServer(QObject *parent) : QObject(parent)
 
     memset(this->paiList, 0, this->paiCount);
 
-    stat = this->SVR_normal;//正常模式
+    stat = SVR_normal;//正常模式
+
+    connect(this, SIGNAL(_postToRecvSlot(MJ_RequestData)), this, SLOT(RecvSlot(MJ_RequestData)), Qt::QueuedConnection),
 
     tmChuPai = new QTimer(this);
     connect(this->tmChuPai, SIGNAL(timeout()), this, SLOT(tmChuPaiSlot()), Qt::QueuedConnection);
@@ -133,7 +135,8 @@ void MJ_LocalServer::start()
     this->member[1]->init(cards[1], this->wang);
     this->member[2]->init(cards[2], this->wang);
     this->member[3]->init(cards[3], this->wang);
-
+/******
+ *
     qDebug() << "svr:  zhuangid " << this->zhuang_id << "  curid" << this->cur_id;
     qDebug() << "svr:  maxpaiCount:" << this->maxPaiCount << "  paicount" << this->paiCount;
     qDebug() << "svr:  begin:" << (char*)cards[0] << this->wang;
@@ -141,7 +144,8 @@ void MJ_LocalServer::start()
     qDebug() << "svr:  begin:" << (char*)cards[2] << this->wang;
     qDebug() << "svr:  begin:" << (char*)cards[3] << this->wang;
     qDebug() << "svr: all pai:" << this->paiList << endl;
-
+ *
+*******/
     // 发送开局消息
     MJ_response resp;
     resp.setCard(this->wang);
@@ -191,7 +195,7 @@ void MJ_LocalServer::faPai()
 
     this->tmChuPai->start(8000);//出牌8秒
 
-    qDebug() << "svr   MJ_LocalServer::faPai(): id = " << cur_id << endl;
+    qDebug() << "svr  ::faPai(): id = " << cur_id;
 }
 
 void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
@@ -212,7 +216,7 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
     resp.setWho(senderID);
     resp.setSendTo(MJ_response::SDT_Broadcast);
     send(resp);
-    qDebug() << "svr :resl_chuPai SDT_Broadcast ok";
+    qDebug() << "svr ::resl_chuPai SDT_Broadcast ok";
 
     cur_id = senderID;
     mem_policy[senderID] = P_None;
@@ -261,22 +265,23 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
 
     if(this->stat == SVR_vote) // 本桌有玩家可以 胡杠碰吃
     {
-        qDebug() << "svr  resl_FaPai(): need wait!  stat = " << this->stat;
+        qDebug() << "svr  resl_FaPai():need wait! current_policy=" << this->current_policy;
         current_policy = P_None;
         resp.setType(MJ_response::T_Wait);
         resp.setWho(senderID);
         resp.setSendTo(MJ_response::SDT_Broadcast);
         send(resp);
 
+        this->tmChuPai->stop();
         this->tmOut->start(6000);//6s选择时间
         f_HGPC_valid = true;
     }
     else if(this->stat == SVR_normal) // 继续发牌
     {
-        qDebug() << "svr  resl_ChuPai, continue FaPai";
+        qDebug() << "svr  resl_ChuPai() continue FaPai";
         cur_id ++;
         cur_id %= 4;
-        this->faPai();
+        this->_FaPaiRequest();
     }
     else   // 出错了！
     {
@@ -284,6 +289,7 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
     }
 }
 
+// 更新 玩家 胡杠碰吃 列表
 void MJ_LocalServer::resl_HGPCList(MJ_RequestData &request)
 {
     int senderID = request.getSenderID();
@@ -293,6 +299,12 @@ void MJ_LocalServer::resl_HGPCList(MJ_RequestData &request)
     if((wj_ready & 0x0f) != 0x0f)
     {
         wj_ready |= 1 << senderID;
+        if((wj_ready & 0x0f) == 0x0f)//这时候到齐了，开始发牌（这算是开局发牌，
+                            //   后面还会收到很多的HGPCList消息, 开局发牌只有一次 ）
+        {
+            qDebug() << " ### resl_HGPCList  to FaPai() ";
+            this->_FaPaiRequest();
+        }
     }
 
     MJ_Base::CARD hu[8] = {0};
@@ -396,7 +408,7 @@ void MJ_LocalServer::resl_Gang(MJ_RequestData &req)
 
              // 补牌
              cur_id = current_policy_ID;
-             this->faPai();
+             this->_FaPaiRequest();
 
              resp.setType(MJ_response::T_ChuPai);
              resp.setSendTo(MJ_response::SDT_Broadcast);
@@ -543,7 +555,7 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
         {
             cur_id++;
             cur_id %= 4;
-            this->faPai();
+            this->_FaPaiRequest();
         }
 
         this->stat = SVR_normal;
@@ -554,7 +566,7 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
         {
             // 补牌
             cur_id = current_policy_ID;
-            this->faPai();
+            this->_FaPaiRequest();
 
             resp.setType(MJ_response::T_ChuPai);
             resp.setSendTo(MJ_response::SDT_Broadcast);
@@ -590,7 +602,7 @@ void MJ_LocalServer::resl_AnGang(MJ_RequestData &req)
     send(resp);
 
     cur_id = senderID;
-    this->faPai();
+    this->_FaPaiRequest();
 
     resp.setType(MJ_response::T_ChuPai);
     resp.setSendTo(MJ_response::SDT_Broadcast);
@@ -642,14 +654,14 @@ void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
         resp.setSendTo(MJ_response::SDT_Broadcast);
         send(resp);
 
-        this->tmOut->start(10000);//10s选择时间
+        this->tmOut->start(6000);//6s选择时间
         f_HGPC_valid = true;
         BuGang_falg = true;//此标志用于判断是否抢杠胡
     }
     else
     {
         cur_id = senderID;
-        this->faPai();
+        this->_FaPaiRequest();
 
         resp.setType(MJ_response::T_ChuPai);
         resp.setSendTo(MJ_response::SDT_Broadcast);
@@ -657,6 +669,14 @@ void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
 
         send(resp);
     }
+}
+
+void MJ_LocalServer::_FaPaiRequest()
+{
+    MJ_RequestData req(cur_id);
+    req.setType(MJ_RequestData::R_FaPai);
+
+    emit _postToRecvSlot(req);
 }
 
 void MJ_LocalServer::RecvSlot(MJ_RequestData request)
@@ -670,57 +690,71 @@ void MJ_LocalServer::RecvSlot(MJ_RequestData request)
     case MJ_RequestData::R_Init:
         qDebug() << "svr RecvSlot type" << "R_Init";
         this->start();
+        qDebug() << "svr RecvSlot R_Init" << "end";
         break;
 
     case MJ_RequestData::R_HGPCList:
         qDebug() << "svr RecvSlot type" << "R_HGPCList";
         this->resl_HGPCList(request);
-        if((wj_ready & 0x0f) == 0x0f)
-            this->faPai();
+        qDebug() << "svr RecvSlot R_HGPCList" << "end";
         break;
 
     case MJ_RequestData::R_ChuPai:
         qDebug() << "svr RecvSlot type" << "R_ChuPai";
         this->resl_chuPai(request);
+        qDebug() << "svr RecvSlot R_ChuPai" << "end";
         break;
 
     case MJ_RequestData::R_Hu:
         qDebug() << "svr RecvSlot type" << "R_Hu";
         this->resl_Hu(request);
+        qDebug() << "svr RecvSlot R_Hu" << "end";
         break;
 
     case MJ_RequestData::R_Gang:
         qDebug() << "svr RecvSlot type" << "R_Gang";
         this->resl_Gang(request);
+        qDebug() << "svr RecvSlot R_Gang" << "end";
         break;
 
     case MJ_RequestData::R_Peng:
         qDebug() << "svr RecvSlot type" << "R_Peng";
         this->resl_Peng(request);
+        qDebug() << "svr RecvSlot R_Peng" << "end";
         break;
 
     case MJ_RequestData::R_Chi:
         qDebug() << "svr RecvSlot type" << "R_Chi";
         this->resl_Chi(request);
+        qDebug() << "svr RecvSlot R_Chi" << "end";
         break;
 
     case MJ_RequestData::R_CanCel:
         qDebug() << "svr RecvSlot type" << "R_CanCel";
         this->resl_Cancel(request);
+        qDebug() << "svr RecvSlot R_CanCel" << "end";
         break;
 
     case MJ_RequestData::R_AnGang:
         qDebug() << "svr RecvSlot type" << "R_AnGang";
         this->resl_AnGang(request);
+        qDebug() << "svr RecvSlot R_AnGang" << "end";
         break;
 
     case MJ_RequestData::R_BuGang:
         qDebug() << "svr RecvSlot type" << "R_BuGang";
         this->resl_BuGang(request);
+        qDebug() << "svr RecvSlot R_BuGang" << "end";
+        break;
+
+    case MJ_RequestData::R_FaPai:
+        qDebug() << "svr RecvSlot type" << "R_FaPai";
+        this->faPai();
+        qDebug() << "svr RecvSlot R_FaPai" << "end";
         break;
 
     default: // 出错了！
-        qDebug() << "svr RecvSlot type" << "default";
+        qDebug() << "svr RecvSlot type" << "default" << endl;
         break;
     }
 }
@@ -729,11 +763,14 @@ void MJ_LocalServer::RecvSlot(MJ_RequestData request)
 void MJ_LocalServer::tmOutSlot()
 {
     f_HGPC_valid = false;
+    this->stat = SVR_normal;//恢复正常模式
+    this->tmOut->stop();
 
     // 有玩家做出了选择的要处理掉
     if(this->current_policy != P_None)
     {
         this->current_policy = P_None;
+
         MJ_response resp;
         resp.setType(MJ_response::T_ChuPai);
         resp.setSendTo(MJ_response::SDT_Broadcast);
@@ -743,8 +780,10 @@ void MJ_LocalServer::tmOutSlot()
     else {  // 都没做出选择, 发牌给下家
         this->cur_id++;
         this->cur_id %= 4;
-        this->faPai();
+        this->_FaPaiRequest();
     }
+
+    qDebug() << "svr  tmOutSlot(): current_policy" << current_policy;
 }
 
 void MJ_LocalServer::tmChuPaiSlot()
@@ -752,7 +791,7 @@ void MJ_LocalServer::tmChuPaiSlot()
     //this->member[cur_id]->DelCard(this->card);//  默认出牌
     qDebug() << "svr MJ_LocalServer::tmChuPaiSlot:";
     qDebug() << "   cur_id:" << cur_id;
-    qDebug() << "   card：" << this->card;
+    qDebug() << "   card:" << this->card;
 
     MJ_RequestData req(cur_id);
     req.setType(MJ_RequestData::R_ChuPai);

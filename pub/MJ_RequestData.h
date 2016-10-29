@@ -22,11 +22,13 @@ public:
         R_HGPCList = 0x200,//胡杠碰吃列表：客户端需要把分析好的数据传到服务端，由服务端做核对
         R_AnGang = 0x400,//四张牌都在我手上，可以暗杠
         R_BuGang = 0x800,//手上有一张牌，正好是之前碰过的，可以补杠
+        R_FaPai  = 0x1000, //供svr使用，发牌时发送，以保证消息队列的顺序执行
         R_Max
     };
 
     typedef unsigned int size_t;
 public:
+    MJ_RequestData();
     MJ_RequestData(int id, Type type=R_NoType, MJ_Base::CARD c=MJ_Base::MJ_noCard);
 
     void setType(Type type);

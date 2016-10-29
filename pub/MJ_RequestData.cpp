@@ -2,6 +2,17 @@
 
 #include <cstring>
 
+MJ_RequestData::MJ_RequestData()
+{
+    // QMetaType
+//    static void *Construct(void *where, const void *t)
+//    {
+//        if (t)
+//            return new (where) T(*static_cast<const T*>(t));
+//        return new (where) T;
+//    }
+}
+
 MJ_RequestData::MJ_RequestData(int id, Type type, MJ_Base::CARD c)
 {
     this->ver = 100;

@@ -25,12 +25,6 @@ MJ_Desktop::MJ_Desktop(MJ_Cli::GF_Flag flag, QWidget *parent) :
     this->player[2]->init();
     this->player[3]->init();
 
-//    this->tmChuPai = new QTimer();
-//    this->tmWait = new QTimer();
-//    connect(this->tmChuPai, SIGNAL(timeout()), this, SLOT(tmChuPaiSLot()));
-//    connect(this->tmWait, SIGNAL(timeout()), this, SLOT(tmWaitSlot()));
-
-
     if(flag == MJ_Cli::GF_Local)
     {
         this->request = new MJ_RequestLocal();
@@ -50,17 +44,17 @@ MJ_Desktop::MJ_Desktop(MJ_Cli::GF_Flag flag, QWidget *parent) :
         this->computer3->setID(3);
 
         connect(this->server, SIGNAL(responseSignal(MJ_response)),
-                this->computer1, SLOT(responseSlot(MJ_response)));
+                this->computer1, SLOT(responseSlot(MJ_response)), Qt::QueuedConnection);
         connect(this->server, SIGNAL(responseSignal(MJ_response)),
-                        this->computer2, SLOT(responseSlot(MJ_response)));
+                        this->computer2, SLOT(responseSlot(MJ_response)), Qt::QueuedConnection);
         connect(this->server, SIGNAL(responseSignal(MJ_response)),
-                        this->computer3, SLOT(responseSlot(MJ_response)));
+                        this->computer3, SLOT(responseSlot(MJ_response)), Qt::QueuedConnection);
 
         // bind svr --->   this
 //        QObject::connect(this->request, SIGNAL(RequestSignal(MJ_RequestData)),
 //                this->server, SLOT(RecvSlot(MJ_RequestData)));
         QObject::connect(this->server, SIGNAL(responseSignal(MJ_response)),
-                         this, SLOT(responseSlot(MJ_response)));
+                         this, SLOT(responseSlot(MJ_response)), Qt::QueuedConnection);
     }
     else if(flag == MJ_Cli::GF_OnLine)
     {
@@ -68,8 +62,6 @@ MJ_Desktop::MJ_Desktop(MJ_Cli::GF_Flag flag, QWidget *parent) :
     }
 
     this->init_widgets();
-
-    qDebug() << "MJ_Desktop::MJ_Desktop  end!" << endl;
 }
 
 MJ_Desktop::~MJ_Desktop()
@@ -81,24 +73,21 @@ MJ_Desktop::~MJ_Desktop()
     delete this->player[2];
     delete this->player[3];
 
-//    delete this->tmChuPai;
-//    delete this->tmWait;
-
     delete this->request;
-    delete this->server;
 }
 
 void MJ_Desktop::preStart()
 {
+    this->startButton->show();
 
+    this->disCard_Widget[0]->clean();
+    this->disCard_Widget[1]->clean();
+    this->disCard_Widget[2]->clean();
+    this->disCard_Widget[3]->clean();
 }
 
 void MJ_Desktop::init_widgets()
 {
-    this->startButton = new QPushButton(QString::fromLocal8Bit("开始"),this);
-    this->startButton->move((this->width()-this->startButton->width())/2, this->height()*3/4);
-    connect(this->startButton, SIGNAL(clicked(bool)), this, SLOT(startButtonClicked(bool)));
-
     this->HGPC_widget = new MJ_HGPCWidget(QSize(100, 30), this);
     this->clock_wdiget= new MJ_CLockWidget(0, QSize(80, 60), this);
     this->disCard_Widget[0] = new MJ_DiscardWidget(this);
@@ -111,6 +100,10 @@ void MJ_Desktop::init_widgets()
     this->ShangJia_widget   = new MJ_ShangJiaWidget(this);
     this->XiaJia_widget     = new MJ_XiaJiaWidget(this);
 
+    connect(self_widget, SIGNAL(retClicked(MJ_Base::CARD)),
+            this, SLOT(selfWidgetSlot(MJ_Base::CARD)), Qt::QueuedConnection);
+    connect(HGPC_widget, SIGNAL(hgpc_finished()),
+            this, SLOT(HGPCWidgetSlot()), Qt::QueuedConnection);
 
     this->self_widget->setModel(this->self);
     this->XiaJia_widget->setModel(dynamic_cast<MJ_otherPlayer*>(this->player[1]));
@@ -137,6 +130,36 @@ void MJ_Desktop::init_widgets()
     this->ShangJia_widget->setSize(QSize(x/6, y*0.7));
     this->ShangJia_widget->move(0, (this->height()-this->ShangJia_widget->height()) / 2);
     qDebug() << this->ShangJia_widget->geometry();
+
+    this->disCard_Widget[0]->setId(this->ID);
+    this->disCard_Widget[1]->setId(1);
+    this->disCard_Widget[2]->setId(2);
+    this->disCard_Widget[3]->setId(3);
+
+    x = this->width()*5/6;
+    y = this->height()*5/6;
+
+    this->disCard_Widget[0]->resize((this->width())/3, (this->height() - 80)/3 - this->self_widget->height()/3);
+    this->disCard_Widget[0]->move(this->width()/3,
+                                         /*this->height()-this->self_widget->height()-(this->height() - 80)/3);*/
+                                  this->height()/2+40);
+    this->disCard_Widget[1]->resize((this->width() - this->XiaJia_widget->width()-this->ShangJia_widget->width())/3,
+                                    this->height()/3);
+    this->disCard_Widget[1]->move(this->width()/2+120, this->height()/3);
+
+    this->disCard_Widget[2]->resize(this->width()/3, (this->height()-80)/3 - this->DuiMen_widget->height()/3);
+    this->disCard_Widget[2]->move(this->width()/3, this->height()/2-40-this->disCard_Widget[2]->height());
+    this->disCard_Widget[3]->resize((this->width() - this->ShangJia_widget->width()-this->ShangJia_widget->width())/3,
+                                    this->height()/3);
+    this->disCard_Widget[3]->move(this->ShangJia_widget->width()-40, this->height()/3);
+
+    //  开始按钮
+    this->startButton = new QPushButton(QString::fromLocal8Bit("开始"),this);
+    this->startButton->move((this->width()-this->startButton->width())/2, this->height()*3/4);
+    connect(this->startButton, SIGNAL(clicked(bool)), this, SLOT(startButtonClicked(bool)), Qt::QueuedConnection);
+
+    this->HGPC_widget->move(this->width()*2/3, this->height()-this->self_widget->height()-60);
+    this->HGPC_widget->hide();
 }
 
 void MJ_Desktop::resl_init(MJ_response &resp)
@@ -147,8 +170,9 @@ void MJ_Desktop::resl_init(MJ_response &resp)
     MJ_Base::CARD lst[16] = {0};
     resp.getPaiList(lst);
 
-    qDebug() << "MJ_Desktop  Init:" << lst << " " << resp.getCard();
-    qDebug() << "MJ_Desktop  Init: recvid = " << recverID;
+    qDebug() << "_Desktop  Init:" << lst << " " << resp.getCard()
+             << "recvid = " << recverID;
+
     if(recverID == this->ID)
     {
         this->self->init(lst, resp.getCard()); // 初始化数据
@@ -156,6 +180,8 @@ void MJ_Desktop::resl_init(MJ_response &resp)
         MJ_Base::CARD g[16] = {0};
         MJ_Base::CARD p[16] = {0};
         MJ_Base::CARD c[16] = {0};
+
+        this->self->AnalysisHGPC();
         this->self->getCanHuList(h, 16);
         this->self->getCanGangList(g, 16);
         this->self->getCanPengList(p, 16);
@@ -175,33 +201,30 @@ void MJ_Desktop::resl_init(MJ_response &resp)
     }
 
     /****
-       *
-       *  TEST
-    */
+       *  TEST    */
 
     update();
    /**/
 }
 
+// 出现多玩家可碰杠吃等情况，wait消息只会收到一次，、
+// 收到wait消息后要记录后面的吃碰杠情况，保存权限最高的一个，最后谁收到出牌消息，谁才是最后胜出的
 void MJ_Desktop::resl_wait(MJ_response &resp)
 {
-    //this->tmWait->start(9900);//10s 定时
     //判断自己可以胡杠碰吃？
-    int who = resp.getWho();
-    int recverId = resp.getSendTo();
-    MJ_Base::CARD card= resp.getCard();
+    int who = resp.getWho();//who：谁出的牌
+    int recverId = resp.getSendTo();//recverID通常是4，MJ_response::SDT_Broadcast
+    MJ_Base::CARD card = resp.getCard();//刚才[who]出的牌
 
     this->s_stat = S_None;
     this->s_hgpc = false;
+    //  定时 6s 不闪
+    this->clock_wdiget->clockStart(0, 6, false);
 
     //  自己的就算了
     if(who == this->ID)
     {
-        return;
-    }
-    //  不是广播的消息，不是对自己发的消息 忽略
-    if(recverId != MJ_response::SDT_Broadcast && recverId != this->ID)
-    {
+        qDebug() << "Desktop::resl_wait:  SELF" << "return";
         return;
     }
 
@@ -216,7 +239,20 @@ void MJ_Desktop::resl_wait(MJ_response &resp)
         self_hgpcStat |= S_HU;
     /***************
        *  调用胡杠碰吃选择窗口
-    */
+    *****************/
+    //if(self_hgpcStat & S_CHI == (int)S_CHI) //err:
+    if((self_hgpcStat & S_CHI) == S_CHI)
+    {
+        MJ_Base::CARD chilist[8][4] = {0};
+        int ret = this->self->getCChiList(card, chilist);
+        this->HGPC_widget->setChiList(chilist, ret);
+        qDebug() << __FUNCTION__ << __LINE__ << "****chilist***" << chilist[0] << " "
+                 << chilist[1] << " " << chilist[2];
+    }
+    this->HGPC_widget->hgpc_show(self_hgpcStat);
+
+    qDebug() << "Desktop::resl_wait: " << this->self->getCanChiList(nullptr, 0);
+    qDebug() << "Desktop::resl_wait: " << (S_HGPC)self_hgpcStat << endl;
 }
 
 //  下面的 吃碰杠胡都是收到的动作，
@@ -363,6 +399,7 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
             /***
              *  显示可胡牌，杠牌窗口
              */
+            this->HGPC_widget->hgpc_show(hg_stat);
         }
     }
     else
@@ -390,19 +427,19 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
         }
         else
         {
-            qDebug() << "MJ_Desktop::resl_FaPai err: who = " << who;
+            qDebug() << "_Desktop::resl_FaPai err: who = " << who;
         }
     }
 
     this->clock_wdiget->clockStart(who, 8);
     update();
 
-    qDebug() << "MJ_Desktop::resl_FaPai" << endl;
+    qDebug() << "_Desktop::resl_FaPai" << endl;
 }
 
 void MJ_Desktop::resl_ChuPai(MJ_response &resp)
 {
-    qDebug() << "MJ_Desktop::resl_ChuPai:" << resp.getCard() << endl;
+    qDebug() << "_Desktop::resl_ChuPai:" << resp.getCard() << endl;
 
     int who = resp.getWho();
     MJ_Base::CARD card = resp.getCard();
@@ -420,14 +457,33 @@ void MJ_Desktop::resl_ChuPai(MJ_response &resp)
         {
             this->self->addCard(this->self_newCard);
             this->self->ChuPai(card);
-        }
 
+            // 分重新分析自己的胡杠碰吃 发送给svr
+            MJ_Base::CARD h[16] = {0};
+            MJ_Base::CARD g[16] = {0};
+            MJ_Base::CARD p[16] = {0};
+            MJ_Base::CARD c[16] = {0};
+
+            qDebug() << __FUNCTION__ << __LINE__ << "  ";
+            this->self->AnalysisHGPC();
+            qDebug() << this->self->getCanHuList(h, 16);
+            qDebug() << this->self->getCanGangList(g, 16);
+            qDebug() << this->self->getCanPengList(p, 16);
+            qDebug() << this->self->getCanChiList(c, 16);
+
+            qDebug() << __FUNCTION__ << __LINE__ << "  " << h << g << p << c;
+
+            MJ_RequestData req(this->ID);
+            req.setType(MJ_RequestData::R_HGPCList);
+            req.setHGPCList(h, g, p, c);
+            this->request->req_send(req);
+        }
+        this->self_widget->draw_PaiList();
     }
     // 添加到出过的牌 窗口
-    //this->disCard_Widget[who]->addCard(card);
-
-    //this->player[who]->ChuPai(resp.getCard());
-    qDebug() << "MJ_Desktop::resl_ChuPai:" << " endl" << endl;
+    this->disCard_Widget[who]->addCard(card);
+    update();
+    qDebug() << "_Desktop::resl_ChuPai:" << " endl" << endl;
 }
 
 void MJ_Desktop::resl_OK(MJ_response &resp)
@@ -453,11 +509,6 @@ void MJ_Desktop::resl_Over(MJ_response &resp)
 {
     int who = resp.getWho();
 
-    if(who == this->ID)
-    {
-
-    }
-
     this->preStart();
 }
 
@@ -465,57 +516,81 @@ void MJ_Desktop::responseSlot(MJ_response response)
 {
     int type = response.getType();
 
-    qDebug() << "MJ_Desktop::responseSlot: Send to" << response.getSendTo();
-    qDebug() << "MJ_Desktop::responseSlot: who" << response.getWho();
+    qDebug() << "_Desktop::responseSlot: Send to" << response.getSendTo();
+    qDebug() << "_Desktop::responseSlot: who" << response.getWho();
 
     switch(type)
     {
     case MJ_response::T_Init:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_Init";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_Init";
         this->resl_init(response);
         break;
     case MJ_response::T_Wait:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_Wait";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_Wait";
+        this->resl_wait(response);
         break;
     case MJ_response::T_Chi:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_Chi";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_Chi";
         this->resl_Chi(response);
         break;
     case MJ_response::T_Peng:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_Peng";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_Peng";
         this->resl_Peng(response);
         break;
     case MJ_response::T_Gang:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_Gang";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_Gang";
         this->resl_Gang(response);
         break;
     case MJ_response::T_Hu:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_Hu";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_Hu";
         this->resl_Hu(response);
         break;
     case MJ_response::T_FaPai:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_FaPai";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_FaPai";
         this->resl_FaPai(response);
         break;
     case MJ_response::T_ChuPai:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_ChuPai";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_ChuPai";
         this->resl_ChuPai(response);
         break;
     case MJ_response::T_Ok:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_Ok";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_Ok";
         this->resl_OK(response);
         break;
     case MJ_response::T_UnSucc:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_UnSucc";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_UnSucc";
         this->resl_Unsucc(response);
         break;
     case MJ_response::T_GMOver:
-        qDebug() << "MJ_Desktop::responseSlot: type:" << "T_GMOver";
+        qDebug() << "_Desktop::responseSlot: type:" << "T_GMOver";
         this->resl_Over(response);
         break;
     default:
         break;
     }
+}
+
+void MJ_Desktop::selfWidgetSlot(MJ_Base::CARD cd)
+{
+    if(cur_zhuapai == this->ID) //
+    {
+        qDebug() << QString::fromLocal8Bit("出牌：") << cd;
+
+        this->HGPC_widget->hide();
+
+        MJ_RequestData req(this->ID);
+        req.setType(MJ_RequestData::R_ChuPai);
+        req.setCard(cd);
+        req.setSenderID(this->ID);
+
+        request->req_send(req);
+    }
+}
+
+void MJ_Desktop::HGPCWidgetSlot()
+{
+    int result = HGPC_widget->getResult();
+    qDebug() << "_Desktop::HGPCWidgetSlot:" << result;
 }
 
 void MJ_Desktop::startButtonClicked(bool)
@@ -528,25 +603,6 @@ void MJ_Desktop::startButtonClicked(bool)
     this->request->req_send(req);
     this->startButton->hide();
 }
-
-//void MJ_Desktop::tmChuPaiSLot()
-//{
-
-//}
-
-//void MJ_Desktop::tmWaitSlot()
-//{
-
-//}
-
-
-
-
-
-
-
-
-
 
 
 

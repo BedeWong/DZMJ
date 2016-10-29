@@ -6,6 +6,9 @@ MJ_Computer::MJ_Computer(QObject *parent) : QObject(parent)
 {
     this->player = new MJ_Player();
     this->request = new MJ_RequestLocal();
+
+    tm = new QTimer(this);
+    connect(tm, SIGNAL(timeout()), this, SLOT(tmSlot()), Qt::QueuedConnection);
 }
 
 MJ_Computer::~MJ_Computer()
@@ -46,7 +49,7 @@ void MJ_Computer::resl_init(MJ_response &resp)
         req.setSenderID(this->Id);
 
         request->req_send(req);
-        qDebug() << "Computer::resl_init " << recvID << "  " << this->Id;
+        //qDebug() << "Computer::resl_init " << recvID << "  " << this->Id;
     }
 
 }
@@ -78,8 +81,16 @@ void MJ_Computer::resl_Hu(MJ_response &resp)
 
 void MJ_Computer::resl_FaPai(MJ_response &resp)
 {
-    qDebug() << "Computer::resl_FaPai card=" << resp.getCard() << "id = " << this->Id << " who:"
-             << resp.getWho() << "recvID = " << resp.getSendTo();
+    if(resp.getSendTo() == this->Id)
+    {
+        this->resp = resp;
+        tm->start(2000);
+    }
+    return ;
+
+
+    //qDebug() << "Computer::resl_FaPai card=" << resp.getCard() << "id = " << this->Id << " who:"
+    //         << resp.getWho() << "recvID = " << resp.getSendTo();
     int recvID = resp.getSendTo();
     if(recvID == this->Id)
     {
@@ -119,42 +130,66 @@ void MJ_Computer::resl_Over(MJ_response &resp)
 void MJ_Computer::responseSlot(MJ_response response)
 {
     int type = response.getType();
+    //qDebug() << "Computer::responseSlot: Send to" << response.getSendTo();
+    //qDebug() << "Computer::responseSlot: who" << response.getWho();
+
 
     switch(type)
     {
     case MJ_response::T_Init:
+        //qDebug() << "Computer::responseSlot: type:" << "T_Init";
         this->resl_init(response);
         break;
     case MJ_response::T_Wait:
+        //qDebug() << "Computer::responseSlot: type:" << "T_Wait";
         break;
     case MJ_response::T_Chi:
+        ////qDebug() << "Computer::responseSlot: type:" << "T_Chi";
         this->resl_Chi(response);
         break;
     case MJ_response::T_Peng:
+        //qDebug() << "Computer::responseSlot: type:" << "T_Peng";
         this->resl_Peng(response);
         break;
     case MJ_response::T_Gang:
+        //qDebug() << "Computer::responseSlot: type:" << "T_Gang";
         this->resl_Gang(response);
         break;
     case MJ_response::T_Hu:
+        //qDebug() << "Computer::responseSlot: type:" << "T_Hu";
         this->resl_Hu(response);
         break;
     case MJ_response::T_FaPai:
+        //qDebug() << "Computer::responseSlot: type:" << "T_FaPai";
         this->resl_FaPai(response);
         break;
     case MJ_response::T_ChuPai:
+        //qDebug() << "Computer::responseSlot: type:" << "T_ChuPai";
         this->resl_ChuPai(response);
         break;
     case MJ_response::T_Ok:
+        //qDebug() << "Computer::responseSlot: type:" << "T_Ok";
         this->resl_OK(response);
         break;
     case MJ_response::T_UnSucc:
+        //qDebug() << "Computer::responseSlot: type:" << "T_UnSucc";
         this->resl_Unsucc(response);
         break;
     case MJ_response::T_GMOver:
+        //qDebug() << "Computer::responseSlot: type:" << "T_GMOver";
         this->resl_Over(response);
         break;
     default:
         break;
     }
+}
+
+void MJ_Computer::tmSlot()
+{
+    this->tm->stop();
+    MJ_RequestData data(this->Id);
+    data.setType(MJ_RequestData::R_ChuPai);
+    data.setSenderID(this->Id);
+    data.setCard(this->resp.getCard());
+    this->request->req_send(data);
 }

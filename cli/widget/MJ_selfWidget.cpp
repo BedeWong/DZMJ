@@ -13,9 +13,12 @@ MJ_selfWidget::MJ_selfWidget(QWidget *parent) : QWidget(parent)
 
     for(int i=0; i<13; i++)
     {
-        this->items.push_back(new MJ_SelfWidgetItem(MJ_Base::MJ_noCard, this));
+        MJ_SelfWidgetItem *item = new MJ_SelfWidgetItem(MJ_Base::MJ_noCard, this);
+        connect(item, SIGNAL(ItemClicked(MJ_Base::CARD)), this, SLOT(itemClicked(MJ_Base::CARD)), Qt::QueuedConnection);
+        this->items.push_back(item);
     }
     this->newCard = new MJ_SelfWidgetItem(MJ_Base::MJ_noCard, this);
+    connect(newCard, SIGNAL(ItemClicked(MJ_Base::CARD)), this, SLOT(itemClicked(MJ_Base::CARD)), Qt::QueuedConnection);
 
     WidgetBaseInstance = MJ_widgetBase::getInstance();
 
@@ -46,6 +49,7 @@ void MJ_selfWidget::paintEvent(QPaintEvent *)
     nextStartPoint = QPoint(5, (DS_Height-84)/2);
 
     QPainter painter(this->pix_display);
+    this->pix_display->fill(QColor(0,0,0,0));
 
     if(gpc_need_redraw)
     {
@@ -153,14 +157,23 @@ void MJ_selfWidget::draw_GPC(QPainter &painter)
     //qDebug() << "MJ_selfWidget::draw_GPC" << endl;
 }
 
+void MJ_selfWidget::itemClicked(MJ_Base::CARD cd)
+{
+    //qDebug() << "````selfWidget::itemClicked";
+    emit retClicked(cd);
+}
+
 void MJ_selfWidget::draw_PaiList()
 {
+    //qDebug() << "\"draw_PaiList nextStartPoint:" <<nextStartPoint;
     MJ_Base::CARD pailist[16] = {0};
     int pCount = this->dataModel->getPaiList(pailist);
 
     int gpc_count = this->dataModel->getGPCseq(nullptr);
-    qDebug() << "MJ_selfWidget:draw_PaiList gpc_count:" << gpc_count;
-    nextStartPoint += QPoint(gpc_count*180*x_scale*y_scale, 0);
+    nextStartPoint = QPoint(gpc_count*180*x_scale*y_scale + 10, DS_Height-84);
+    //qDebug() << "MJ_selfWidget:draw_PaiList gpc_count:" << gpc_count
+    //         << "nextStartPoint: " << nextStartPoint;
+
     for(int i=0; i<13; i++)
     {
         if(i < pCount)
@@ -262,8 +275,8 @@ void MJ_SelfWidgetItem::paintEvent(QPaintEvent *)
     painter.drawPixmap(0,0, bg);
     painter.drawPixmap(0, 18 * x_scale * y_scale, cd);
 
-    ////qDebug() << "--MJ_SelfWidgetItem::paintEvent--" << endl;
-    //////qDebug() << bg.size() << cd.size() << this->size();
+    //qDebug() << "--MJ_SelfWidgetItem::paintEvent--" << endl;
+    //qDebug() << bg.size() << cd.size() << this->size();
 }
 
 void MJ_SelfWidgetItem::mousePressEvent(QMouseEvent *)
@@ -286,13 +299,13 @@ bool MJ_SelfWidgetItem::event(QEvent *e)
     {
         QPoint topLeftPoint = this->mapToParent(QPoint(0,0));
 
-        this->move(topLeftPoint - QPoint(0, 15));
+        this->move(topLeftPoint - QPoint(0, 10));
     }
     else if(e->type() == QEvent::Leave)
     {
         QPoint topLeftPoint = this->mapToParent(QPoint(0,0));
 
-        this->move(topLeftPoint + QPoint(0, 15));
+        this->move(topLeftPoint + QPoint(0, 10));
     }
 
     return QWidget::event(e);

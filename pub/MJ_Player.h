@@ -12,6 +12,7 @@ class MJ_Player : public MJ_Base
 
 private:
 
+    //  分析过后的  可 胡杠碰吃 集
     CARD cHuList[16];
     CARD cChiList[16];
     CARD cGangList[8];
@@ -26,11 +27,21 @@ private:
 
     std::map<CARD, MJ_AnalyResult> AnalyResults;
 private:
+    bool inPaiList(CARD c);
+
     bool hasSanLian(CARD*li, CARD c, CARD **res);
     bool hasErLian(CARD*li, CARD c, CARD **res);
     bool hasKanZhang(CARD*li, CARD c, CARD **res);
 
     void MJ_sort(typename MJ_Player::CARD *a, int len);
+
+    // 分析可 吃碰杠胡
+    // 返回值：>=0匹配结果数， <0：数据有误
+    int cChi() ;
+    int cPeng() ;
+    int cGang() ;
+    int cHu();
+    int analysis();
 
 public:
 
@@ -47,13 +58,7 @@ public:
     int DelCard(CARD card);
     int DelCard(int offset);
 
-    // 分析可 吃碰杠胡
-    // 返回值：>=0匹配结果数， <0：数据有误
-    int cChi() ;
-    int cPeng() ;
-    int cGang() ;
-    int cHu();
-    int analysis();
+    void AnalysisHGPC();
 
     int getCanChiList(CARD *lst, int c)const;
     int getCanPengList(CARD *lst, int c)const;
@@ -72,7 +77,7 @@ public:
     //根据一张牌 获取到可以吃的牌组合。
     //返回值：-1  给出的card有误，0表示没有可以吃的，返回正整数表示res中有多少组
     //res存放结果，非线程安全
-    int getCChiList(CARD card, CARD (*res)[3]);
+    int getCChiList(CARD card, CARD (*res)[4]);
     bool testHu(CARD c);
     bool testPeng(CARD c);
     bool testGang(CARD c);

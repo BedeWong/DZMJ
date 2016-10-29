@@ -1,7 +1,10 @@
 #include <QApplication>
+#include <QMetaType>
 
 #include <iostream>
 #include "cli/MJ_Cli.h"
+#include "pub/MJ_RequestData.h"
+#include "pub/MJ_response.h"
 
 #include "cli/widget/MJ_selfWidget.h"
 #include "pub/MJ_Player.h"
@@ -11,6 +14,9 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    qRegisterMetaType<MJ_RequestData>("MJ_RequestData");
+    qRegisterMetaType<MJ_response>("MJ_response");
+    qRegisterMetaType<MJ_Base::CARD>("MJ_Base::CARD");
 
     MJ_Cli desk;
     desk.show();

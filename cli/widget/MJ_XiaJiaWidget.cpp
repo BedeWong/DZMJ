@@ -43,7 +43,7 @@ void MJ_XiaJiaWidget::draw_NewCard(bool flag)
 void MJ_XiaJiaWidget::paintEvent(QPaintEvent *)
 {
     nextStartPoint = QPoint((this->size().width()-84)/2, DS_Height-5);
-    this->pix_display->fill(QColor(0,0,0,100));
+    this->pix_display->fill(QColor(0,0,0,0));
 
     QPainter painter(this->pix_display);
     draw_GPC(painter);
