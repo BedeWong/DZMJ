@@ -789,6 +789,7 @@ int MJ_Player::getCanHuList(CARD *lst, int c) const
 //  ÷ÿ–¥MJ_Base::
 int MJ_Player::Chi(MJ_Base::CARD card, pCCARD ll)
 {
+    qDebug() << "Player::Chi:" << ll << "card = " << card;
     for(int i=0; i<3; i++)
     {
         if(card != ll[i])
@@ -951,12 +952,10 @@ int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[4])
 
 bool MJ_Player::testHu(MJ_Base::CARD c)
 {
-    for(auto it : AnalyResults)
+    for(auto i : cHuList)
     {
-        if(it.first == c)
-        {
+        if(i == c)
             return true;
-        }
     }
 
     return false;

@@ -411,6 +411,8 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
         this->ShangJia_widget->draw_NewCard(false);
         this->DuiMen_widget->draw_NewCard(false);
 
+        this->HGPC_widget->hide();
+
 
         this->self->setNewCard(resp.getCard());
         this->self_widget->draw_PaiList();

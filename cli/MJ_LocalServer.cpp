@@ -189,6 +189,7 @@ void MJ_LocalServer::faPai_NoCard()
         return ;
     }
 
+    qDebug() << ":faPai_NoCard(): ID = " << current_policy_ID << "current_policy:" << current_policy;
     this->cur_id = this->current_policy_ID;
     this->card   = this->player[cur_id]->getLastCard();
 
@@ -217,6 +218,21 @@ void MJ_LocalServer::faPai()
     }
 
     this->card = this->paiList[paiCount++];
+
+    for(int i=0; i<4; i++)
+        this->mem_policy[i] = P_None;
+
+    if(player[cur_id]->testHu(card))
+        mem_policy[cur_id] |= P_Hu;
+    if(player[cur_id]->testGang(card))
+        mem_policy[cur_id] |= P_Gang;
+
+    if(mem_policy[cur_id] != P_None)
+    {
+        qDebug() << "\tmem_policy[cur_id]:" << mem_policy[cur_id];
+        this->f_HGPC_valid = true;
+        current_policy = P_None;
+    }
 
     resp.setSendTo(cur_id);
     resp.setWho(cur_id);
@@ -258,7 +274,7 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
     j %= 4;//定位到下家
     mem_policy[j] = P_None;
     if(player[j]->testHu(cd))
-        mem_policy[j] |= (int)P_Hu;
+        mem_policy[j] |= P_Hu;
     if(player[j]->testGang(cd))
         mem_policy[j] |= P_Gang;
     if(player[j]->testPeng(cd))
@@ -269,6 +285,7 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
     {
         this->stat = SVR_vote;//等待抉择
     }
+    qDebug() << "\tmem_policy[j]:" << mem_policy[j] << "j = " << j;
 
     j += 1; j %= 4;
     mem_policy[j] = P_None;
@@ -282,6 +299,7 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
     {
         this->stat = SVR_vote;//等待抉择
     }
+    qDebug() << "\tmem_policy[j]:" << mem_policy[j] << "j = " << j;
 
     j += 1; j %= 4;
     mem_policy[j] = P_None;
@@ -295,9 +313,14 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
     {
         this->stat = SVR_vote;//等待抉择
     }
+    qDebug() << "\tmem_policy[j]:" << mem_policy[j] << "j = " << j;
 
     if(this->stat == SVR_vote) // 本桌有玩家可以 胡杠碰吃
     {
+//        qDebug() << "\tmem_policy[0]:" << mem_policy[0];
+//        qDebug() << "\tmem_policy[1]:" << mem_policy[1];
+//        qDebug() << "\tmem_policy[2]:" << mem_policy[2];
+//        qDebug() << "\tmem_policy[3]:" << mem_policy[3];
         qDebug() << "svr  resl_FaPai():need wait! current_policy=" << this->current_policy;
         resp.setType(MJ_response::T_Wait);
         resp.setWho(senderID);
@@ -367,6 +390,12 @@ void MJ_LocalServer::resl_Hu(MJ_RequestData &req)
         resp_unsuccessful(senderID, senderID);
         return;
     }
+
+    qDebug() << "\tsenderId:" << senderID;
+    qDebug() << "\tmem_policy[0]:" << mem_policy[0];
+    qDebug() << "\tmem_policy[1]:" << mem_policy[1];
+    qDebug() << "\tmem_policy[2]:" << mem_policy[2];
+    qDebug() << "\tmem_policy[3]:" << mem_policy[3];
 
     if(this->mem_policy[senderID] & P_Hu)
     {
@@ -547,6 +576,7 @@ void MJ_LocalServer::resl_Chi(MJ_RequestData &req)
         send(resp);
 
         resp.setType(MJ_response::T_Chi);
+        resp.setCard(req.getCard());
         resp.setWho(senderID);
         resp.setChi(this->chi);
         resp.setSendTo(MJ_response::SDT_Broadcast);
@@ -587,6 +617,11 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
     this->mem_policy[senderID] = P_None;//取消这个操作
     MJ_response resp;
 
+    qDebug() << "\tcurrent_policy:" << current_policy;
+    qDebug() << "\tmem_policy[0]:" << mem_policy[0];
+    qDebug() << "\tmem_policy[1]:" << mem_policy[0];
+    qDebug() << "\tmem_policy[2]:" << mem_policy[0];
+    qDebug() << "\tmem_policy[3]:" << mem_policy[0];
     // 当这个玩家操作取消后，之前有玩家选择的操作是当前最大值时
     if(mem_policy[0] <= current_policy && mem_policy[1] <= current_policy &&
             mem_policy[2] <= current_policy && mem_policy[3] <= current_policy)
@@ -594,9 +629,15 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
         //  没有操作，能执行这个分支的话，可以发牌给下家了
         if(current_policy == P_None)
         {
+            this->stat = SVR_normal;
+            if(this->tmOut->isActive())
+                this->tmOut->stop();
+
             cur_id++;
             cur_id %= 4;
             this->_FaPaiRequest();
+
+            return;
         }
 
         this->stat = SVR_normal;
