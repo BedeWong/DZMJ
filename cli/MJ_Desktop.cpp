@@ -400,16 +400,18 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
 {
     int who = resp.getWho();
     int recverID = resp.getSendTo();
+    this->self_newCard = resp.getCard();
 
     cur_zhuapai = who;//标记当前要出牌的玩家
     if(who == this->ID)
     {
-        this->self_widget->draw_NewCard(true);
+        if(self_newCard != MJ_Base::MJ_noCard)
+            this->self_widget->draw_NewCard(true);
         this->XiaJia_widget->draw_NewCard(false);
         this->ShangJia_widget->draw_NewCard(false);
         this->DuiMen_widget->draw_NewCard(false);
 
-        this->self_newCard = resp.getCard();
+
         this->self->setNewCard(resp.getCard());
         this->self_widget->draw_PaiList();
 
@@ -480,7 +482,8 @@ void MJ_Desktop::resl_ChuPai(MJ_response &resp)
         }
         else
         {
-            this->self->addCard(this->self_newCard);
+            if(self_newCard != MJ_Base::MJ_noCard)
+                this->self->addCard(this->self_newCard);
             this->self->ChuPai(card);
 
             // 分重新分析自己的胡杠碰吃 发送给svr

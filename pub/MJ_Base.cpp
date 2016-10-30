@@ -112,3 +112,8 @@ bool MJ_Base::getNewCard(CARD &cd)
 
     return true;
 }
+
+MJ_Base::CARD MJ_Base::getLastCard()
+{
+    return this->paiList[this->paiCount-1];
+}

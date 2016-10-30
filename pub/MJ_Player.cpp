@@ -860,6 +860,9 @@ int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[4])
 
     if(card == MJ_Base::MJ_ZHONG)
         cd = this->wang;
+    else
+        cd = card;
+
     a = cd + 2;
     b = cd + 1;
     // abc   789

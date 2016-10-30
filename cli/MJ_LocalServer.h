@@ -23,6 +23,7 @@ public:
     void send(MJ_response &);
 
     void start();//¿ª¾Ö
+    void faPai_NoCard();
     void faPai();
     void resl_chuPai(MJ_RequestData &);
     void resl_HGPCList(MJ_RequestData &);

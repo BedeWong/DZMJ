@@ -53,6 +53,7 @@ void MJ_HGPCWidget::setChiList(const MJ_Base::CARD (*ll)[4], int nCount)
     {
         newItem = new ChiwidgetItem(ll[i], this->selectChiWidget);
         this->selectChiWidget->addItem(newItem);
+        qDebug() << "\tHGPCWidget::setChiList :" << ll[i];
     }
 }
 

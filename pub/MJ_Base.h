@@ -87,6 +87,7 @@ public:
     int setPaiList(CARD *lst);
 
     bool getNewCard(CARD &cd);
+    CARD getLastCard();
 };
 
 #define isFENG(card) ((card) <= MJ_Base::MJ_DONG && (card) >= MJ_Base::MJ_BAN)

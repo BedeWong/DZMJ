@@ -177,6 +177,33 @@ void MJ_LocalServer::start()
     this->send(resp);
 }
 
+void MJ_LocalServer::faPai_NoCard()
+{
+    MJ_response resp;
+    if(paiCount == maxPaiCount)
+    {
+        resp.setType(MJ_response::T_GMOver);
+        resp.setSendTo(MJ_response::SDT_Broadcast);
+        send(resp);
+        this->tmChuPai->stop();
+        return ;
+    }
+
+    this->cur_id = this->current_policy_ID;
+    this->card   = this->player[cur_id]->getLastCard();
+
+    resp.setSendTo(cur_id);
+    resp.setWho(cur_id);
+    resp.setType(MJ_response::T_FaPai);
+    resp.setCard(MJ_Base::MJ_noCard);
+
+    send(resp);
+
+    this->tmChuPai->start(8000);//出牌8秒
+
+    qDebug() << "svr  ::faPai(): id = " << cur_id;
+}
+
 void MJ_LocalServer::faPai()
 {
     MJ_response resp;
@@ -336,6 +363,7 @@ void MJ_LocalServer::resl_Hu(MJ_RequestData &req)
 
     if(!f_HGPC_valid)
     {
+        qDebug() << "\t!f_HGPC_valid";
         resp_unsuccessful(senderID, senderID);
         return;
     }
@@ -367,6 +395,7 @@ void MJ_LocalServer::resl_Hu(MJ_RequestData &req)
     }
     else
     {
+        qDebug() << "\t!mem_policy ERR";
         resp_unsuccessful(senderID, senderID);
     }
 }
@@ -417,11 +446,10 @@ void MJ_LocalServer::resl_Gang(MJ_RequestData &req)
              cur_id = current_policy_ID;
              this->_FaPaiRequest();
 
-             resp.setType(MJ_response::T_ChuPai);
-             resp.setSendTo(MJ_response::SDT_Broadcast);
-             resp.setWho(cur_id);
-
-             send(resp);
+//             resp.setType(MJ_response::T_ChuPai);
+//             resp.setSendTo(MJ_response::SDT_Broadcast);
+//             resp.setWho(cur_id);
+//             send(resp);
          }
      }
      else
@@ -472,11 +500,11 @@ void MJ_LocalServer::resl_Peng(MJ_RequestData &req)
             if(this->tmOut->isActive())
                 this->tmOut->stop();
 
-            resp.setType(MJ_response::T_ChuPai);
-            resp.setSendTo(MJ_response::SDT_Broadcast);
-            resp.setWho(senderID);
-
-            send(resp);
+            this->faPai_NoCard();
+//            resp.setType(MJ_response::T_ChuPai);
+//            resp.setSendTo(MJ_response::SDT_Broadcast);
+//            resp.setWho(senderID);
+//            send(resp);
         }
     }
     else
@@ -532,16 +560,17 @@ void MJ_LocalServer::resl_Chi(MJ_RequestData &req)
             if(this->tmOut->isActive())
                 this->tmOut->stop();
 
+            this->faPai_NoCard();
             /*********************************************************************
             // ERR  出牌消息是响应后告知有牌出了
             // 在这里看来还是要使用二次确认消息了，desktop类在二次确认消息里reset数据
             *********************************************************************/
-            resp.setType(MJ_response::T_ChuPai);
-            resp.setSendTo(MJ_response::SDT_Broadcast);
-            resp.setWho(senderID);
-            resp.setCard(MJ_Base::MJ_noCard);
+//            resp.setType(MJ_response::T_ChuPai);
+//            resp.setSendTo(MJ_response::SDT_Broadcast);
+//            resp.setWho(senderID);
+//            resp.setCard(MJ_Base::MJ_noCard);
 
-            send(resp);
+//            send(resp);
         }
     }
     else // 回应不成功
@@ -580,19 +609,20 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
             cur_id = current_policy_ID;
             this->_FaPaiRequest();
 
-            resp.setType(MJ_response::T_ChuPai);
-            resp.setSendTo(MJ_response::SDT_Broadcast);
-            resp.setWho(senderID);
+//            resp.setType(MJ_response::T_ChuPai);
+//            resp.setSendTo(MJ_response::SDT_Broadcast);
+//            resp.setWho(senderID);
 
-            send(resp);
+//            send(resp);
         }
         else
         {
-            resp.setType(MJ_response::T_ChuPai);
-            resp.setSendTo(MJ_response::SDT_Broadcast);
-            resp.setWho(this->current_policy_ID);//
+            this->faPai_NoCard();
+//            resp.setType(MJ_response::T_ChuPai);
+//            resp.setSendTo(MJ_response::SDT_Broadcast);
+//            resp.setWho(this->current_policy_ID);//
 
-            send(resp);
+//            send(resp);
         }
     }
     //  否则继续等待
@@ -616,11 +646,11 @@ void MJ_LocalServer::resl_AnGang(MJ_RequestData &req)
     cur_id = senderID;
     this->_FaPaiRequest();
 
-    resp.setType(MJ_response::T_ChuPai);
-    resp.setSendTo(MJ_response::SDT_Broadcast);
-    resp.setWho(senderID);
-
-    send(resp);
+    this->faPai_NoCard();
+//    resp.setType(MJ_response::T_ChuPai);
+//    resp.setSendTo(MJ_response::SDT_Broadcast);
+//    resp.setWho(senderID);
+//    send(resp);
 }
 
 void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
@@ -676,11 +706,10 @@ void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
         cur_id = senderID;
         this->_FaPaiRequest();
 
-        resp.setType(MJ_response::T_ChuPai);
-        resp.setSendTo(MJ_response::SDT_Broadcast);
-        resp.setWho(senderID);
-
-        send(resp);
+//        resp.setType(MJ_response::T_ChuPai);
+//        resp.setSendTo(MJ_response::SDT_Broadcast);
+//        resp.setWho(senderID);
+//        send(resp);
     }
 }
 
@@ -784,11 +813,12 @@ void MJ_LocalServer::tmOutSlot()
     {
         this->current_policy = P_None;
 
-        MJ_response resp;
-        resp.setType(MJ_response::T_ChuPai);
-        resp.setSendTo(MJ_response::SDT_Broadcast);
-        resp.setWho(this->current_policy_ID);
-        send(resp);
+        this->faPai_NoCard();
+//        MJ_response resp;
+//        resp.setType(MJ_response::T_ChuPai);
+//        resp.setSendTo(MJ_response::SDT_Broadcast);
+//        resp.setWho(this->current_policy_ID);
+//        send(resp);
     }
     else {  // 都没做出选择, 发牌给下家
         this->cur_id++;
