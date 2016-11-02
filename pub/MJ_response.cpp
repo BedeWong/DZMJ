@@ -39,7 +39,18 @@ void MJ_response::setChi(MJ_Base::CARD chi[])
     if(chi == nullptr)
         return;
 
-    memcpy(this->chi, chi, 3);
+    memcpy(this->chi, chi, 4);
+}
+
+void MJ_response::setgpc(MJ_Base::CARD *g, MJ_Base::CARD *p, MJ_Base::CARD *c)
+{
+    memset(this->g, 0, 8);
+    memset(this->p, 0, 8);
+    memset(this->c, 0, 16);
+
+    memcpy(this->g, g, 8);
+    memcpy(this->p, p, 8);
+    memcpy(this->c, c, 16);
 }
 
 void MJ_response::setCard(MJ_Base::CARD c)
@@ -62,6 +73,11 @@ void MJ_response::setPaiList(MJ_Base::pCCARD lst)
 {
     memcpy(this->paiList, lst, 16);
     this->len += 16;
+}
+
+void MJ_response::setPaiCount(int count)
+{
+    paiCount = count;
 }
 
 MJ_response::Type MJ_response::getType() const
@@ -113,4 +129,16 @@ void MJ_response::getChi(MJ_Base::CARD chi[])
         return;
 
     memcpy(chi, this->chi, 3);
+}
+
+void MJ_response::getgpc(MJ_Base::CARD *g, MJ_Base::CARD *p, MJ_Base::CARD *c)
+{
+    memcpy(g, this->g, 8);
+    memcpy(p, this->p, 8);
+    memcpy(c, this->c, 16);
+}
+
+int MJ_response::getPaiCount()
+{
+    return paiCount;
 }

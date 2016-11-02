@@ -50,13 +50,16 @@ public:
     // 开局初始化 并 分析 本家局势
     void init(pCCARD _paiList, CARD _wang) override;
 
+    void setWang(CARD wang);
+    CARD getWang()const;
+
     // 把抓到的牌放入牌列
     void addCard(CARD newCard);
 
     int ChuPai(CARD c) override;
-    // 删掉一张牌（出牌，吃-3， 碰-3， 杠-3）
+    // 删掉一张牌（出牌-1，吃-2， 碰-2， 杠-3）
     int DelCard(CARD card);
-    int DelCard(int offset);
+    //int DelCard(int offset);
 
     void AnalysisHGPC();
 
@@ -83,6 +86,10 @@ public:
     bool testGang(CARD c);
     bool testChi(CARD c);
 
+    // 检测是否可补杠
+    bool testBuGang(CARD c);
+    bool testZiMo(CARD c);
+
     //svr 中用到，直接设置玩家分析的结果进集合中
     //返回值：此些函数中有验证功能，通过返回（list）个数，其他返回-1
     int setcHuList(CARD _h[]);
@@ -94,6 +101,7 @@ public:
     int copy_pengList(MJ_AnalyResult *);
     int copy_gangList(MJ_AnalyResult *);
 
+    MJ_AnalyResult getAnalyResult(CARD c)const;
 
 #ifdef DEBUG
     void printTest();

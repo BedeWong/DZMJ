@@ -21,6 +21,8 @@
 #include "widget/MJ_selfWidget.h"
 #include "widget/MJ_ShangJiaWidget.h"
 #include "widget/MJ_XiaJiaWidget.h"
+#include "widget/MJ_wangAndRemainCardCount.h"
+#include "widget/MJ_gameOverWidget.h"
 
 namespace Ui {
 class MJ_Desktop;
@@ -45,7 +47,10 @@ public:
         S_HU    = 0x0001,
         S_GANG  = 0x0010,
         S_PENG  = 0x0100,
-        S_CHI   = 0x1000
+        S_CHI   = 0x1000,
+
+        S_BuGang = 0x10000,
+        S_ZiMo   = 0x100000
     };
 
 private:
@@ -103,6 +108,8 @@ private:
     MJ_DuiMenWidget *DuiMen_widget;
     MJ_ShangJiaWidget *ShangJia_widget;
     MJ_XiaJiaWidget *XiaJia_widget;
+    MJ_wangAndRemainCardCount *wangAndRemainCardCount;
+    MJ_gameOverWidget *gameOverWidget;
 
     QPushButton *startButton;
 };

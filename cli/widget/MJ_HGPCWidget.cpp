@@ -102,12 +102,12 @@ bool MJ_HGPCWidget::eventFilter(QObject *watched, QEvent *event)
 
 void MJ_HGPCWidget::hgpc_show(int stat)
 {
-    if(stat & MJ_Desktop::S_HU)
+    if((stat & MJ_Desktop::S_HU) || (stat & MJ_Desktop::S_ZiMo))
         this->HuButton->setDisabled(false);
     else
         this->HuButton->setDisabled(true);
 
-    if(stat & MJ_Desktop::S_GANG)
+    if((stat & MJ_Desktop::S_GANG) || (stat & MJ_Desktop::S_BuGang))
         this->GangButton->setDisabled(false);
     else
         this->GangButton->setDisabled(true);

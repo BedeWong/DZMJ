@@ -169,10 +169,31 @@ void MJ_selfWidget::draw_PaiList()
     MJ_Base::CARD pailist[16] = {0};
     int pCount = this->dataModel->getPaiList(pailist);
 
+    for(int i=0; i<pCount; i++)
+    {
+        if(pailist[i] == this->wang)
+        {
+            for(int j=i; j>0; j--)
+                pailist[j] = pailist[j-1];
+            pailist[0] = this->wang;
+        }
+        else if(pailist[i] == MJ_Base::MJ_ZHONG)
+        {
+            for(int j=i; j>0; j--)
+            {
+                if(pailist[j] > this->wang)
+                {
+                    pailist[j+1] = MJ_Base::MJ_ZHONG;
+                    break;
+                }
+                else
+                    pailist[j] = pailist[j-1];
+            }
+        }
+    }
+
     int gpc_count = this->dataModel->getGPCseq(nullptr);
-    nextStartPoint = QPoint(gpc_count*180*x_scale*y_scale + 10, DS_Height-84);
-    //qDebug() << "MJ_selfWidget:draw_PaiList gpc_count:" << gpc_count
-    //         << "nextStartPoint: " << nextStartPoint;
+    nextStartPoint = QPoint(gpc_count*160*x_scale*y_scale + 10, DS_Height-84);
 
     for(int i=0; i<13; i++)
     {
@@ -183,7 +204,7 @@ void MJ_selfWidget::draw_PaiList()
             this->items[i]->setSize(55*x_scale, 84*y_scale);
             this->items[i]->show();
 
-            nextStartPoint += QPoint(55*x_scale, 0);
+            nextStartPoint += QPoint(50*x_scale, 0);
         }
         else
         {
@@ -196,7 +217,7 @@ void MJ_selfWidget::draw_PaiList()
         MJ_Base::CARD cd;
         this->dataModel->getNewCard(cd);
         this->newCard->setCard(cd);
-        this->newCard->move(nextStartPoint + QPoint(40*x_scale*y_scale, 0));
+        this->newCard->move(nextStartPoint + QPoint(30*x_scale*y_scale, 0));
         this->newCard->setSize(55*x_scale, 84*y_scale);
         this->newCard->show();
     }
@@ -214,6 +235,11 @@ void MJ_selfWidget::draw_NewCard(bool flag)
     this->draw_newCard = flag;
     if(!flag)
         this->newCard->setCard(MJ_Base::MJ_noCard);
+}
+
+void MJ_selfWidget::setWang(MJ_Base::CARD wang)
+{
+    this->wang = wang;
 }
 
 

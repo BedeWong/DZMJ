@@ -46,11 +46,13 @@ public:
     void setVer(VER v);
     void setSendTo(int sendto);
     void setWho(int w);
-    void setChi(MJ_Base::CARD chi[3]);
+    void setChi(MJ_Base::CARD chi[4]);
+    void setgpc(MJ_Base::CARD *g, MJ_Base::CARD *p, MJ_Base::CARD *c);
 
     void setCard(MJ_Base::CARD c);
     void setInitType(std::string name, int xid, int pid, int fpri, int score);
     void setPaiList(MJ_Base::pCCARD lst);
+    void setPaiCount(int count);
 
     Type getType()const;
     VER getVer()const;
@@ -60,6 +62,8 @@ public:
     void getInitType(std::string &name, int &xid, int &pid, int &fpri, int &score);
     int getPaiList(MJ_Base::CARD *lst);
     void getChi(MJ_Base::CARD chi[3]);
+    void getgpc(MJ_Base::CARD *g, MJ_Base::CARD *p, MJ_Base::CARD *c);
+    int getPaiCount();
 
 public:
 private:
@@ -68,10 +72,14 @@ private:
     int SendTo;// a id, recver's id, range 0-4
     int who;//表示上次动作谁做出来的（例如：出牌，通知其他玩家时标志谁出的牌）
     size_t len;//  msg length
+    int paiCount;
 
     MJ_Base::CARD card;
     MJ_Base::CARD paiList[16];
-    MJ_Base::CARD chi[3];
+    MJ_Base::CARD chi[4];
+    MJ_Base::CARD g[8];
+    MJ_Base::CARD p[8];
+    MJ_Base::CARD c[16];
     int P_ID;//玩家ID
     int X_ID;//座位号
     int f_pri;//庄家&闲家

@@ -60,7 +60,7 @@ public:
 
     ~MJ_AnalyResult();
 
-    int canHu(CARD *);
+    int canHu(CARD *);//返回可听牌集合
 
     int addHu(HU _HU);
     int calc_BeiShu(const MJ_Player &, CARD card, HU_FLAG flag/*自摸、接炮、抢杠、杠上花、*/);//计算多少翻

@@ -1,46 +1,64 @@
 #include <QApplication>
 #include <QMetaType>
 
+#define UNDEBUG 1
+
+#if UNDEBUG
 #include <iostream>
+#include <QDebug>
 #include "cli/MJ_Cli.h"
 #include "pub/MJ_RequestData.h"
 #include "pub/MJ_response.h"
 
 #include "cli/widget/MJ_selfWidget.h"
 #include "pub/MJ_Player.h"
+#else
+#include "pub/MJ_AnalyResult.h"
+#include "pub/MJ_Player.h"
 
+#include "cli/widget/MJ_gameOverWidget.h"
+#endif
 using namespace std;
 
 int main(int argc, char *argv[])
 {
+
     QApplication a(argc, argv);
+#if UNDEBUG
     qRegisterMetaType<MJ_RequestData>("MJ_RequestData");
     qRegisterMetaType<MJ_response>("MJ_response");
     qRegisterMetaType<MJ_Base::CARD>("MJ_Base::CARD");
 
     MJ_Cli desk;
     desk.show();
-//    MJ_Base::CARD mjlist[] = {"ABCczyA"};
-//    MJ_Player player;
+#else
+    MJ_gameOverWidget wid;
 
-//    player.init(mjlist, 'z');
+    MJ_Base::CARD pailist[16] = {"yxwgfcbaZYXXX"};
+    MJ_Base::CARD g[8]={0}, p[8]={0}, c[16]={0};
+    MJ_Base::CARD hucard = 'h';
 
-//    player.Gang('f');
-//    MJ_Base::CARD ll[4] = "def";
-//    player.Chi('d', ll);
+    MJ_Player win = MJ_Player();
+    win.setPengList(p);
+    win.setGangList(g);
+    win.setChiList(c);
+    win.setPaiList(pailist);
+    win.setWang('Q');
+    win.AnalysisHGPC();
 
-//    player.setNewCard('c');
-//    player.setPaiList(mjlist);
+    wid.setPai(g, p, c,pailist, hucard);
 
-//    MJ_selfWidget wid;
+    if(win.testHu(hucard))
+    {
+        MJ_AnalyResult analy(win);
+        analy.calc_BeiShu(win, hucard, MJ_AnalyResult::F_JiePao);
+        int fan = analy.getFan();
+        auto list = analy.HU_names();
 
-//    wid.setSize(QSize(840, 100));
-//    wid.setModel(&player);
-//    wid.draw_NewCard(true);
-//    wid.draw_PaiList();
-
-//    wid.show();
-
+        wid.setFan(list, fan);
+    }
+    wid.show();
+#endif
 
     return a.exec();
 }

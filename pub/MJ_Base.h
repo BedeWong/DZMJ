@@ -86,6 +86,10 @@ public:
     int setPaiCount(int count);
     int setPaiList(CARD *lst);
 
+    int setGangList(CARD *lst, int len = -1);
+    int setPengList(CARD *lst, int len = -1);
+    int setChiList(CARD *lst, int len = -1);
+
     bool getNewCard(CARD &cd);
     CARD getLastCard();
 };

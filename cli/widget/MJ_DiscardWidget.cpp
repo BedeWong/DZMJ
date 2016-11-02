@@ -52,6 +52,8 @@ void MJ_DiscardWidget::undo()
 void MJ_DiscardWidget::clean()
 {
     this->count = 0;
+    this->display->fill(QColor(0,0,0,0));
+    update();
 }
 
 void MJ_DiscardWidget::setId(int _id)

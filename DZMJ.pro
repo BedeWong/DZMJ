@@ -28,7 +28,9 @@ SOURCES += main.cpp \
     cli/widget/MJ_widgetBase.cpp \
     cli/widget/MJ_XiaJiaWidget.cpp \
     cli/widget/MJ_DuiMenWidget.cpp \
-    cli/widget/MJ_ShangJiaWidget.cpp
+    cli/widget/MJ_ShangJiaWidget.cpp \
+    cli/widget/MJ_gameOverWidgetverwidget.cpp \
+    cli/widget/MJ_wangAndRemainCardCount.cpp
 
 HEADERS += \
     pub/MJ_Player.h \
@@ -50,7 +52,9 @@ HEADERS += \
     cli/widget/MJ_widgetBase.h \
     cli/widget/MJ_XiaJiaWidget.h \
     cli/widget/MJ_DuiMenWidget.h \
-    cli/widget/MJ_ShangJiaWidget.h
+    cli/widget/MJ_ShangJiaWidget.h \
+    cli/widget/MJ_gameOverWidget.h \
+    cli/widget/MJ_wangAndRemainCardCount.h
 
 FORMS += \
     cli/MJ_Cli.ui \

@@ -71,13 +71,16 @@ private:
     int current_policy_ID;
     bool f_HGPC_valid;//定义 胡杠碰吃 有效，有时候有可能响应或延迟问题导致下家已经发牌了，上家才送来碰牌消息
     bool BuGang_falg;
-    MJ_Base::CARD chi[3];
+    MJ_Base::CARD chi[4];
 
     int cur_id;
     int zhuang_id;
     int winner_id;
+
     MJ_Base::CARD wang;
     MJ_Base::CARD card;//最近发的一张牌
+    MJ_Base::CARD tmOutCard;//胡杠碰吃超时出这张
+
     int shaizi1, shaizi2;//色子
     int wj_ready;
 

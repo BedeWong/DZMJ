@@ -32,17 +32,13 @@ MJ_LocalServer::MJ_LocalServer(QObject *parent) : QObject(parent)
     for(auto i=0; i<4; i++)
         this->player[i] = new MJ_Player();
 
-    cur_id = 0;
-    zhuang_id = -1;
     winner_id = -1;
-    paiCount = 0;
-    maxPaiCount = 136;
 
     stat = SVR_normal;//正常模式
 
     connect(this, SIGNAL(_postToRecvSlot(MJ_RequestData)), this, SLOT(RecvSlot(MJ_RequestData)), Qt::QueuedConnection),
 
-    tmChuPai = new QTimer(this);
+    this->tmChuPai = new QTimer(this);
     connect(this->tmChuPai, SIGNAL(timeout()), this, SLOT(tmChuPaiSlot()), Qt::QueuedConnection);
     tmOut = new QTimer(this);
     connect(this->tmOut, SIGNAL(timeout()), this, SLOT(tmOutSlot()), Qt::QueuedConnection);
@@ -75,12 +71,13 @@ void MJ_LocalServer::send(MJ_response &resp)
 void MJ_LocalServer::start()
 {
     MJ_Base::CARD cards[4][16] = {0};
+    paiCount = 0;
     maxPaiCount = 136;
     BuGang_falg = false;
     f_HGPC_valid = false;
     wj_ready = 0;//玩家还没整理好手上的牌
 
-    memset(this->paiList, 0, this->paiCount);
+    memset(this->paiList, 0, this->maxPaiCount);
 
     if(winner_id < 0)  // 第一局,
         this->zhuang_id = 0;
@@ -89,10 +86,10 @@ void MJ_LocalServer::start()
         //this->zhuang_id = rand() % 4; // 选庄
 
     cur_id = zhuang_id;//当前出牌者
-
-    srand(time(NULL));
+    stat = SVR_normal;//正常模式
 
     //洗牌
+    srand(time(NULL));
     int cardCount[136] = {0};
     for(auto i=0; i<136; i++)
     {
@@ -107,7 +104,7 @@ void MJ_LocalServer::start()
     shaizi2 = rand()%6+1;
 
     maxPaiCount -= (shaizi1 + shaizi2) * 2;
-    this->wang = paiList[maxPaiCount];
+    this->wang = paiList[maxPaiCount - 1];
     switch(this->wang)
     {
     case MJ_Base::MJ_JIUWAN:
@@ -123,7 +120,7 @@ void MJ_LocalServer::start()
         this->wang = MJ_Base::MJ_DONG;
         break;
     default:
-        this->wang += 1;
+        this->wang -= 1;//九万的ascii值比一万小
     }
 
     //发牌
@@ -139,6 +136,8 @@ void MJ_LocalServer::start()
     this->player[1]->init(cards[1], this->wang);
     this->player[2]->init(cards[2], this->wang);
     this->player[3]->init(cards[3], this->wang);
+
+    qDebug() << "~~~~!" << shaizi1 << shaizi2 << maxPaiCount << paiCount;
 /******
  *
     qDebug() << "svr:  zhuangid " << this->zhuang_id << "  curid" << this->cur_id;
@@ -156,6 +155,7 @@ void MJ_LocalServer::start()
     resp.setPaiList(cards[0]);
     resp.setSendTo(0);
     resp.setType(MJ_response::T_Init);
+    resp.setPaiCount(this->maxPaiCount - paiCount);
     this->send(resp);
 
     resp.setCard(this->wang);
@@ -190,8 +190,11 @@ void MJ_LocalServer::faPai_NoCard()
     }
 
     qDebug() << ":faPai_NoCard(): ID = " << current_policy_ID << "current_policy:" << current_policy;
+
     this->cur_id = this->current_policy_ID;
-    this->card   = this->player[cur_id]->getLastCard();
+    this->tmOutCard   = this->player[cur_id]->getLastCard();
+
+    qDebug() << QString::fromLocal8Bit("超时就出：") << this->tmOutCard;
 
     resp.setSendTo(cur_id);
     resp.setWho(cur_id);
@@ -217,7 +220,8 @@ void MJ_LocalServer::faPai()
         return ;
     }
 
-    this->card = this->paiList[paiCount++];
+    this->tmOutCard = this->paiList[paiCount++];
+    this->card = tmOutCard;
 
     for(int i=0; i<4; i++)
         this->mem_policy[i] = P_None;
@@ -238,12 +242,16 @@ void MJ_LocalServer::faPai()
     resp.setWho(cur_id);
     resp.setType(MJ_response::T_FaPai);
     resp.setCard(this->card);
-
+    resp.setPaiCount(this->maxPaiCount - this->paiCount);
     send(resp);
+
+    this->player[cur_id]->addCard(this->card);
 
     this->tmChuPai->start(8000);//出牌8秒
 
-    qDebug() << "svr  ::faPai(): id = " << cur_id;
+    MJ_Base::CARD lst[16] = {0};
+    qDebug() << "svr  ::faPai(): id = " << cur_id << QString::fromLocal8Bit("发牌后张数：") << this->player[cur_id]->getPaiList(lst);
+    qDebug() << "svr  ::faPai(): pailist:" << (char *)lst << endl;
 }
 
 void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
@@ -253,6 +261,7 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
         return ;
 
     MJ_Base::CARD cd = req.getCard();
+    this->player[senderID]->DelCard(cd);//默认出牌
     //回应ok
     MJ_response resp;
     resp.setType(MJ_response::T_Ok);
@@ -380,6 +389,8 @@ void MJ_LocalServer::resl_HGPCList(MJ_RequestData &request)
 
 }
 
+// 胡牌消息：返回胡牌玩家
+//            胡的牌，手上的牌，杠碰吃(未填坑)
 void MJ_LocalServer::resl_Hu(MJ_RequestData &req)
 {
     int senderID = req.getSenderID();
@@ -412,6 +423,13 @@ void MJ_LocalServer::resl_Hu(MJ_RequestData &req)
         resp.setType(MJ_response::T_Hu);
         resp.setCard(req.getCard());
         resp.setWho(senderID);
+        MJ_Base::CARD g[8] = {0}, p[8] = {0}, c[16] = {0}, pai[16] = {0};
+        this->player[senderID]->getGang(g);
+        this->player[senderID]->getPeng(p);
+        this->player[senderID]->getChi(c);
+        this->player[senderID]->getPaiList(pai);
+        resp.setgpc(g, p, c);
+        resp.setPaiList(pai);
         resp.setSendTo(MJ_response::SDT_Broadcast);
         send(resp);
 
@@ -464,6 +482,7 @@ void MJ_LocalServer::resl_Gang(MJ_RequestData &req)
          resp.setWho(senderID);
          send(resp);
 
+         // 进入if分支的即为最终执行成功的，杠->补牌
          if(mem_policy[0] <= P_Gang && mem_policy[1] <= P_Gang &&
                  mem_policy[2] <= P_Gang && mem_policy[3] <= P_Gang)
          {
@@ -473,6 +492,7 @@ void MJ_LocalServer::resl_Gang(MJ_RequestData &req)
 
              // 补牌
              cur_id = current_policy_ID;
+             this->player[cur_id]->Gang(cd);//
              this->_FaPaiRequest();
 
 //             resp.setType(MJ_response::T_ChuPai);
@@ -528,6 +548,7 @@ void MJ_LocalServer::resl_Peng(MJ_RequestData &req)
             this->stat = SVR_normal;
             if(this->tmOut->isActive())
                 this->tmOut->stop();
+            this->player[current_policy_ID]->Peng(cd);
 
             this->faPai_NoCard();
 //            resp.setType(MJ_response::T_ChuPai);
@@ -546,6 +567,8 @@ void MJ_LocalServer::resl_Peng(MJ_RequestData &req)
 void MJ_LocalServer::resl_Chi(MJ_RequestData &req)
 {
     int senderID = req.getSenderID();
+    MJ_Base::CARD cd = req.getCard();
+
 
     if(!f_HGPC_valid)
     {
@@ -590,6 +613,8 @@ void MJ_LocalServer::resl_Chi(MJ_RequestData &req)
             if(this->tmOut->isActive())
                 this->tmOut->stop();
 
+            this->player[current_policy_ID]->Chi(cd, this->chi);
+
             this->faPai_NoCard();
             /*********************************************************************
             // ERR  出牌消息是响应后告知有牌出了
@@ -613,6 +638,7 @@ void MJ_LocalServer::resl_Chi(MJ_RequestData &req)
 void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
 {
     int senderID = req.getSenderID();
+    MJ_Base::CARD cd = req.getCard();
 
     this->mem_policy[senderID] = P_None;//取消这个操作
     MJ_response resp;
@@ -648,6 +674,7 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
         {
             // 补牌
             cur_id = current_policy_ID;
+            this->player[current_policy_ID]->Gang(cd);
             this->_FaPaiRequest();
 
 //            resp.setType(MJ_response::T_ChuPai);
@@ -656,14 +683,18 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
 
 //            send(resp);
         }
-        else
+        else if(current_policy == P_Peng)
         {
+            cur_id = current_policy_ID;
+            this->player[current_policy_ID]->Peng(cd);
             this->faPai_NoCard();
-//            resp.setType(MJ_response::T_ChuPai);
-//            resp.setSendTo(MJ_response::SDT_Broadcast);
-//            resp.setWho(this->current_policy_ID);//
-
-//            send(resp);
+        }
+        else if(current_policy == P_Chi)
+        {
+            cur_id = current_policy_ID;
+            this->player[current_policy_ID]->Chi(cd, this->chi);//this->chi  是之前玩家发送吃请求
+                                                //  时保存下来的
+            this->faPai_NoCard();
         }
     }
     //  否则继续等待
@@ -687,7 +718,7 @@ void MJ_LocalServer::resl_AnGang(MJ_RequestData &req)
     cur_id = senderID;
     this->_FaPaiRequest();
 
-    this->faPai_NoCard();
+//    this->faPai_NoCard();
 //    resp.setType(MJ_response::T_ChuPai);
 //    resp.setSendTo(MJ_response::SDT_Broadcast);
 //    resp.setWho(senderID);
@@ -698,6 +729,8 @@ void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
 {
     int senderID = req.getSenderID();
     MJ_Base::CARD cd = req.getCard();
+
+    this->player[senderID]->Gang(cd);
 
     MJ_response resp;
     resp.setType(MJ_response::T_Ok);
@@ -872,15 +905,14 @@ void MJ_LocalServer::tmOutSlot()
 
 void MJ_LocalServer::tmChuPaiSlot()
 {
-    //this->player[cur_id]->DelCard(this->card);//  默认出牌
     qDebug() << "svr MJ_LocalServer::tmChuPaiSlot:";
     qDebug() << "   cur_id:" << cur_id;
-    qDebug() << "   card:" << this->card;
+    qDebug() << "   card:" << this->tmOutCard;
 
     MJ_RequestData req(cur_id);
     req.setType(MJ_RequestData::R_ChuPai);
     req.setSenderID(cur_id);
-    req.setCard(this->card);
+    req.setCard(this->tmOutCard);
 
     this->resl_chuPai(req);
 }

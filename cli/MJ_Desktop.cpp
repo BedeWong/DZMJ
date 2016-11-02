@@ -1,5 +1,6 @@
 #include "MJ_Desktop.h"
 #include "ui_MJ_Desktop.h"
+#include "../pub/MJ_AnalyResult.h"
 
 #include <QDesktopWidget>
 #include <QDebug>
@@ -79,11 +80,6 @@ MJ_Desktop::~MJ_Desktop()
 void MJ_Desktop::preStart()
 {
     this->startButton->show();
-
-    this->disCard_Widget[0]->clean();
-    this->disCard_Widget[1]->clean();
-    this->disCard_Widget[2]->clean();
-    this->disCard_Widget[3]->clean();
 }
 
 void MJ_Desktop::init_widgets()
@@ -99,6 +95,9 @@ void MJ_Desktop::init_widgets()
     this->DuiMen_widget     = new MJ_DuiMenWidget(this);
     this->ShangJia_widget   = new MJ_ShangJiaWidget(this);
     this->XiaJia_widget     = new MJ_XiaJiaWidget(this);
+    this->gameOverWidget    = new MJ_gameOverWidget(this);
+
+    wangAndRemainCardCount = new MJ_wangAndRemainCardCount(this);
 
     connect(self_widget, SIGNAL(retClicked(MJ_Base::CARD)),
             this, SLOT(selfWidgetSlot(MJ_Base::CARD)), Qt::QueuedConnection);
@@ -139,15 +138,15 @@ void MJ_Desktop::init_widgets()
     x = this->width()*5/6;
     y = this->height()*5/6;
 
-    this->disCard_Widget[0]->resize((this->width())/3, (this->height() - 80)/3 - this->self_widget->height()/3);
-    this->disCard_Widget[0]->move(this->width()/3,
+    this->disCard_Widget[0]->resize((this->width())/3.3, (this->height() - 80)/3 - this->self_widget->height()/3);
+    this->disCard_Widget[0]->move(this->width()/2.8,
                                          /*this->height()-this->self_widget->height()-(this->height() - 80)/3);*/
                                   this->height()/2+40);
     this->disCard_Widget[1]->resize((this->width() - this->XiaJia_widget->width()-this->ShangJia_widget->width())/3,
                                     this->height()/3);
     this->disCard_Widget[1]->move(this->width()/2+120, this->height()/3);
 
-    this->disCard_Widget[2]->resize(this->width()/3, (this->height()-80)/3 - this->DuiMen_widget->height()/3);
+    this->disCard_Widget[2]->resize(this->width()/3.3, (this->height()-80)/3 - this->DuiMen_widget->height()/3);
     this->disCard_Widget[2]->move(this->width()/3, this->height()/2-40-this->disCard_Widget[2]->height());
     this->disCard_Widget[3]->resize((this->width() - this->ShangJia_widget->width()-this->ShangJia_widget->width())/3,
                                     this->height()/3);
@@ -160,6 +159,12 @@ void MJ_Desktop::init_widgets()
 
     this->HGPC_widget->move(this->width()*2/3, this->height()-this->self_widget->height()-60);
     this->HGPC_widget->hide();
+
+    wangAndRemainCardCount->setGeometry(30, 30, this->width()/12, this->height()/7);
+
+    this->gameOverWidget->move((this->width()-this->gameOverWidget->width())/2,
+                               160);
+    this->gameOverWidget->hide();
 }
 
 void MJ_Desktop::resl_init(MJ_response &resp)
@@ -175,6 +180,10 @@ void MJ_Desktop::resl_init(MJ_response &resp)
 
     if(recverID == this->ID)
     {
+        this->wangAndRemainCardCount->mj_setPaiCount(resp.getPaiCount());
+        this->wangAndRemainCardCount->mj_setCard(resp.getCard());
+        this->self_widget->setWang(resp.getCard());
+
         this->self->init(lst, resp.getCard()); // 初始化数据
         MJ_Base::CARD h[16] = {0};
         MJ_Base::CARD g[16] = {0};
@@ -185,7 +194,7 @@ void MJ_Desktop::resl_init(MJ_response &resp)
         this->self->getCanHuList(h, 16);
         this->self->getCanGangList(g, 16);
         this->self->getCanPengList(p, 16);
-        this->self->getCanChiList(c, 16);
+        this->self->getCanChiList(c, 16);        
 
         MJ_RequestData req(this->ID);
         req.setType(MJ_RequestData::R_HGPCList);
@@ -199,6 +208,11 @@ void MJ_Desktop::resl_init(MJ_response &resp)
     {
         this->player[recverID]->init(lst, resp.getCard());
     }
+
+    this->disCard_Widget[0]->clean();
+    this->disCard_Widget[1]->clean();
+    this->disCard_Widget[2]->clean();
+    this->disCard_Widget[3]->clean();
 
     /****
        *  TEST    */
@@ -253,7 +267,10 @@ void MJ_Desktop::resl_wait(MJ_response &resp)
         qDebug() << __FUNCTION__ << __LINE__ << "****chilist***" << chilist[0] << " "
                  << chilist[1] << " " << chilist[2];
     }
-    this->HGPC_widget->hgpc_show(self_hgpcStat);
+
+    //自己能胡杠碰吃 就弹窗
+    if(self_hgpcStat)
+        this->HGPC_widget->hgpc_show(self_hgpcStat);
 
     qDebug() << "Desktop::resl_wait: " << this->self->getCanChiList(nullptr, 0);
     qDebug() << "Desktop::resl_wait: " << (S_HGPC)self_hgpcStat << endl;
@@ -274,6 +291,7 @@ void MJ_Desktop::resl_Chi(MJ_response &resp)
     if(who == this->ID)
     {
         this->self->Chi(resp.getCard(), _chi);
+        this->HGPC_widget->hide();
     }
     else
         this->player[who]->Chi(resp.getCard(), _chi);
@@ -308,6 +326,7 @@ void MJ_Desktop::resl_Peng(MJ_response &resp)
     if(who == this->ID)
     {
         this->self->Peng(resp.getCard());
+        this->HGPC_widget->hide();
     }
     else
         this->player[who]->Peng(resp.getCard());
@@ -348,6 +367,7 @@ void MJ_Desktop::resl_Gang(MJ_response &resp)
     if(who == this->ID)
     {
         this->self->Gang(resp.getCard());
+        this->HGPC_widget->hide();
     }
     else
         this->player[who]->Gang(resp.getCard());
@@ -384,10 +404,36 @@ void MJ_Desktop::resl_Hu(MJ_response &resp)
     this->s_id   = who;
 
     MJ_Base::CARD pailist[16] = {0};
+    MJ_Base::CARD g[8]={0}, p[8]={0}, c[16]={0};
     resp.getPaiList(pailist);
+    resp.getgpc(g, p, c);
+
+    qDebug() << QString::fromLocal8Bit("玩家%1胜出:").arg(who) << "pailist:" << pailist;
+    qDebug() << "\tgang:" << g << "  p:" << p << " c:" << c;
+
+    MJ_Player win = MJ_Player();
+    win.setPengList(p);
+    win.setGangList(g);
+    win.setChiList(c);
+    win.setPaiList(pailist);
+    win.setWang(this->self->getWang());
+    win.AnalysisHGPC();
+    if(win.testHu(resp.getCard()))
+    {
+        MJ_AnalyResult analy(win);
+        analy.calc_BeiShu(win, resp.getCard(), MJ_AnalyResult::F_JiePao);
+        int fan = analy.getFan();
+        auto list = analy.HU_names();
+
+        this->gameOverWidget->setPai(g, p, c, pailist, resp.getCard());
+        this->gameOverWidget->setFan(list, fan);
+        this->gameOverWidget->show();
+    }
+
     if(who == this->ID)
     {
         this->self->Hu(resp.getCard(), pailist);
+        this->HGPC_widget->hide();
     }
     else
         this->player[who]->Hu(resp.getCard(), pailist);
@@ -422,6 +468,10 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
             hg_stat |= S_GANG;
         if(this->self->testHu(self_newCard))
             hg_stat |= S_HU;
+        if(this->self->testBuGang(self_newCard))
+            hg_stat |= S_BuGang;
+        if(this->self->testZiMo(self_newCard))
+            hg_stat |= S_ZiMo;
         if(hg_stat != S_None)
         {
             /***
@@ -461,6 +511,10 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
     }
 
     this->clock_wdiget->clockStart(who, 8);
+
+    if(self_newCard != MJ_Base::MJ_noCard)
+        this->wangAndRemainCardCount->mj_setPaiCount(resp.getPaiCount());
+
     update();
 
     qDebug() << "_Desktop::resl_FaPai" << endl;
@@ -538,8 +592,8 @@ void MJ_Desktop::resl_Unsucc(MJ_response &resp)
 
 void MJ_Desktop::resl_Over(MJ_response &resp)
 {
-    int who = resp.getWho();
 
+    this->clock_wdiget->clockStart(0, 0, false);
     this->preStart();
 }
 
@@ -608,6 +662,7 @@ void MJ_Desktop::selfWidgetSlot(MJ_Base::CARD cd)
         qDebug() << QString::fromLocal8Bit("出牌：") << cd;
 
         this->HGPC_widget->hide();
+        this->cur_zhuapai = -1;//修复重复出牌bug
 
         MJ_RequestData req(this->ID);
         req.setType(MJ_RequestData::R_ChuPai);

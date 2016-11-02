@@ -1,4 +1,5 @@
 #include "MJ_Base.h"
+#include <QDebug>
 
 MJ_Base::MJ_Base()
 {
@@ -101,7 +102,46 @@ int MJ_Base::setPaiList(MJ_Base::CARD *lst)
         return -1;
 
     memcpy(this->paiList, lst, 16);
+    int len = strlen(lst);
+    this->paiCount = len;
 
+    return 0;
+}
+
+int MJ_Base::setPengList(MJ_Base::CARD *lst, int len)
+{
+    if(len == -1)
+    {
+        len = strlen(lst);
+    }
+    memset(this->peng, 0, 8);
+    memcpy(this->peng, lst, len);
+    this->_p = len;
+    return 0;
+}
+
+int MJ_Base::setChiList(MJ_Base::CARD *lst, int len)
+{
+    if(len == -1)
+    {
+        len = strlen(lst);
+    }
+    memset(this->chi, 0, 16);
+    memcpy(this->chi, lst, len);
+    this->_c = len;
+    return 0;
+}
+
+int MJ_Base::setGangList(MJ_Base::CARD *lst, int len)
+{
+    if(len == -1)
+    {
+        len = strlen(lst);
+    }
+
+    memset(this->gang, 0, 8);
+    memcpy(this->gang, lst, len);
+    this->_g = len;
     return 0;
 }
 
@@ -115,5 +155,6 @@ bool MJ_Base::getNewCard(CARD &cd)
 
 MJ_Base::CARD MJ_Base::getLastCard()
 {
+    qDebug() << __FUNCTION__ << __LINE__ << this->paiList << this->paiCount << endl;
     return this->paiList[this->paiCount-1];
 }

@@ -133,6 +133,16 @@ void MJ_Player::init(MJ_Player::pCCARD _paiList, MJ_Base::CARD _wang)
 #endif
 }
 
+void MJ_Player::setWang(MJ_Base::CARD wang)
+{
+    this->wang = wang;
+}
+
+MJ_Base::CARD MJ_Player::getWang() const
+{
+    return this->wang;
+}
+
 void MJ_Player::addCard(MJ_Base::CARD nc)
 {
     auto i = this->paiCount;
@@ -202,6 +212,7 @@ int MJ_Player::DelCard(MJ_Base::CARD card)
     return 0;
 }
 
+/*  // 此函数已废弃
 int MJ_Player::DelCard(int offset)
 {
     if (offset < 0 || offset >= this->paiCount)
@@ -226,6 +237,7 @@ int MJ_Player::DelCard(int offset)
 #endif
     return 0;
 }
+*/
 
 /***  *****  *****  *****  [吃牌]  *****  *****  *****
  * 吃牌规则：风不能吃，  王不能吃，   假王（中风）可以吃（前提是本局王不是风的情况下）,假王替代真王原身,   可以吃王旁边的牌
@@ -798,7 +810,7 @@ int MJ_Player::Chi(MJ_Base::CARD card, pCCARD ll)
         this->chi[_c++] = ll[i];
     }
     this->gpc_seq[this->gpc_seq_count++] = SEQ_CHI;
-    this->MJ_sort(this->paiList, this->paiCount);
+//    this->MJ_sort(this->paiList, this->paiCount);
 
     return 0;
 }
@@ -826,7 +838,7 @@ int MJ_Player::Peng(MJ_Base::CARD card)
     this->peng[_p++] = card;
     this->gpc_seq[this->gpc_seq_count++] = SEQ_PENG;
 
-    this->MJ_sort(this->paiList, this->paiCount);
+//    this->MJ_sort(this->paiList, this->paiCount);
 
     return 0;
 }
@@ -840,7 +852,7 @@ int MJ_Player::Gang(MJ_Base::CARD card)
     this->gang[_g++] = card;
     this->gpc_seq[this->gpc_seq_count++] = SEQ_GANG;
 
-    this->MJ_sort(this->paiList, this->paiCount);
+//    this->MJ_sort(this->paiList, this->paiCount);
 
     return 0;
 }
@@ -851,6 +863,7 @@ int MJ_Player::Hu(CARD card, pCCARD ll)
 }
 
 // 上家出的牌可以吃，但是怎么吃？返回吃法
+/**** BUG: 中风的吃法 *****/
 int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[4])
 {
     if(res == nullptr)
@@ -952,6 +965,9 @@ int MJ_Player::getCChiList(MJ_Base::CARD card, MJ_Base::CARD (*res)[4])
 
 bool MJ_Player::testHu(MJ_Base::CARD c)
 {
+    if(c == MJ_noCard)
+        return false;
+
     for(auto i : cHuList)
     {
         if(i == c)
@@ -963,6 +979,9 @@ bool MJ_Player::testHu(MJ_Base::CARD c)
 
 bool MJ_Player::testPeng(MJ_Base::CARD c)
 {
+    if(c == MJ_noCard)
+        return false;
+
     for(auto i=0; i<this->cPengCount; i++)
     {
         if(c == this->cPengList[i])
@@ -974,6 +993,9 @@ bool MJ_Player::testPeng(MJ_Base::CARD c)
 
 bool MJ_Player::testGang(MJ_Base::CARD c)
 {
+    if(c == MJ_noCard)
+        return false;
+
     for(auto i=0; i<this->cGangCount; i++)
     {
         if(c == this->cGangList[i])
@@ -985,6 +1007,9 @@ bool MJ_Player::testGang(MJ_Base::CARD c)
 
 bool MJ_Player::testChi(MJ_Base::CARD c)
 {
+    if(c == MJ_noCard)
+        return false;
+
     qDebug() << __FUNCTION__ << __LINE__ << "test card:" << c;
     qDebug() << "\tcCount = " << cChiCount << ", chilist:" << this->cChiList;
     for(auto i=0; i<this->cChiCount; i++)
@@ -993,6 +1018,32 @@ bool MJ_Player::testChi(MJ_Base::CARD c)
             return true;
     }
 
+    return false;
+}
+
+bool MJ_Player::testBuGang(MJ_Base::CARD c)
+{
+    if(c == MJ_noCard)
+        return false;
+
+    for(auto i : gang)
+    {
+        if(c == i)
+            return true;
+    }
+    return false;
+}
+
+bool MJ_Player::testZiMo(MJ_Base::CARD c)
+{
+    if(c == MJ_noCard)
+        return false;
+
+    for(auto i : cHuList)
+    {
+        if(i == MJ_WANG)
+            return true;
+    }
     return false;
 }
 
@@ -1055,6 +1106,18 @@ int MJ_Player::copy_gangList(MJ_AnalyResult *to)
     to->g_count = this->_g;
     memcpy(to->gang, this->gang, this->_g);
     return this->_g;
+}
+
+MJ_AnalyResult MJ_Player::getAnalyResult(MJ_Base::CARD c) const
+{
+    for(auto it : AnalyResults)
+    {
+        if(it.first == c)
+        {
+            return it.second;
+        }
+    }
+    return MJ_AnalyResult();
 }
 
 void MJ_Player::MJ_sort(typename MJ_Base::CARD *li, int len)

@@ -22,6 +22,8 @@ public:
 
     void draw_NewCard(bool);
 
+    void setWang(MJ_Base::CARD wang);
+
 protected:
     void paintEvent(QPaintEvent *event);
 
@@ -47,6 +49,8 @@ private:
     QPoint nextStartPoint;
     QPixmap *pix_display;
     MJ_Player *dataModel;
+
+    MJ_Base::CARD wang;
 
     QList<MJ_SelfWidgetItem*> items;
     MJ_SelfWidgetItem *newCard;
