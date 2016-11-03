@@ -66,9 +66,10 @@ public:
     virtual int Gang(CARD c) = 0;
     virtual int Peng(CARD c) = 0;
     virtual int Chi(CARD c, pCCARD ll) = 0;
-    virtual int UndoGang() = 0;
-    virtual int UndoPeng() = 0;
-    virtual int UndoChi() = 0;
+    int UndoGang();
+    int UndoPeng();
+    int UndoChi();
+    int UndoPeng(CARD c);
 
     virtual int ChuPai(CARD c) = 0;
 

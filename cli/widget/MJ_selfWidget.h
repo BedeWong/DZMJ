@@ -18,10 +18,6 @@ public:
 
     void setSize(QSize sz);
 
-    void draw_PaiList();
-
-    void draw_NewCard(bool);
-
     void setWang(MJ_Base::CARD wang);
 
 protected:
@@ -36,6 +32,10 @@ signals:
 
 public slots:
     void itemClicked(MJ_Base::CARD cd);
+
+    void draw_PaiList();
+
+    void draw_NewCard(bool);
 
 private:
     enum DisplaySize{
@@ -79,6 +79,8 @@ protected:
 
 signals:
     void ItemClicked(MJ_Base::CARD cd);
+
+    void redraw();
 
 public slots:
 

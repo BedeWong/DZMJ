@@ -383,6 +383,11 @@ int MJ_Player::cGang()
 {
     int count = 0;
 
+//    for(int i=0; i<this->_p; i++)
+//    {
+//        this->cGangList[count++] = this->peng[i];
+//    }
+
     for(auto i=0; i<this->paiCount-2; i++)
     {
         if(this->paiList[i] == this->paiList[i+1] &&
@@ -815,21 +820,6 @@ int MJ_Player::Chi(MJ_Base::CARD card, pCCARD ll)
     return 0;
 }
 
-int MJ_Player::UndoGang()
-{
-
-}
-
-int MJ_Player::UndoPeng()
-{
-
-}
-
-int MJ_Player::UndoChi()
-{
-
-}
-
 int MJ_Player::Peng(MJ_Base::CARD card)
 {
     this->DelCard(card);
@@ -845,6 +835,15 @@ int MJ_Player::Peng(MJ_Base::CARD card)
 
 int MJ_Player::Gang(MJ_Base::CARD card)
 {
+    for(int i=0; i<this->_p; i++)
+    {
+        if(card == this->peng[i]) // 转杠
+        {
+            this->UndoPeng(card);
+            return 0;
+        }
+    }
+
     this->DelCard(card);
     this->DelCard(card);
     this->DelCard(card);
@@ -857,7 +856,7 @@ int MJ_Player::Gang(MJ_Base::CARD card)
     return 0;
 }
 
-int MJ_Player::Hu(CARD card, pCCARD ll)
+int MJ_Player::Hu(CARD , pCCARD )
 {
     return 0;
 }
@@ -968,9 +967,9 @@ bool MJ_Player::testHu(MJ_Base::CARD c)
     if(c == MJ_noCard)
         return false;
 
-    for(auto i : cHuList)
+    for(int i=0; i<cHuCount; i++)
     {
-        if(i == c)
+        if(c == this->cHuList[i])
             return true;
     }
 
@@ -1021,14 +1020,31 @@ bool MJ_Player::testChi(MJ_Base::CARD c)
     return false;
 }
 
+// 暗杠
+MJ_Base::CARD MJ_Player::testAnGang()
+{
+    for (int i=0; i<this->paiCount; i++)
+    {
+        if(paiList[i] == paiList[i+1] &&
+                paiList[i] == paiList[i+2] &&
+                paiList[i] == paiList[i+3] &&
+                paiList[i] == paiList[i+4])
+        {
+            return paiList[i];
+        }
+    }
+
+    return MJ_noCard;
+}
+
 bool MJ_Player::testBuGang(MJ_Base::CARD c)
 {
     if(c == MJ_noCard)
         return false;
 
-    for(auto i : gang)
+    for(int i=0; i< this->_p; i++)
     {
-        if(c == i)
+        if(c == peng[i])
             return true;
     }
     return false;
@@ -1039,9 +1055,11 @@ bool MJ_Player::testZiMo(MJ_Base::CARD c)
     if(c == MJ_noCard)
         return false;
 
-    for(auto i : cHuList)
+    for(int i=0; i<cHuCount; i++)
     {
-        if(i == MJ_WANG)
+        if(cHuList[i] == MJ_WANG) // 王抓
+            return true;
+        if(c == cHuList[i])//自摸
             return true;
     }
     return false;

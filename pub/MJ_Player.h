@@ -68,14 +68,10 @@ public:
     int getCanGangList(CARD *lst, int c)const;
     int getCanHuList(CARD *lst, int c)const;
 
-    int Hu(CARD c, pCCARD ll) override;
+    int Hu(CARD, pCCARD) override;
     int Gang(CARD c) override;
     int Peng(CARD c) override;
     int Chi(CARD c, pCCARD ll) override;
-    int UndoGang() override;
-    int UndoPeng() override;
-    int UndoChi() override;
-
 
     //根据一张牌 获取到可以吃的牌组合。
     //返回值：-1  给出的card有误，0表示没有可以吃的，返回正整数表示res中有多少组
@@ -89,6 +85,7 @@ public:
     // 检测是否可补杠
     bool testBuGang(CARD c);
     bool testZiMo(CARD c);
+    CARD testAnGang();
 
     //svr 中用到，直接设置玩家分析的结果进集合中
     //返回值：此些函数中有验证功能，通过返回（list）个数，其他返回-1

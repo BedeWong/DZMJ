@@ -450,6 +450,11 @@ void MJ_LocalServer::resl_Hu(MJ_RequestData &req)
 void MJ_LocalServer::resl_Gang(MJ_RequestData &req)
 {
      int senderID = req.getSenderID();
+     if(this->cur_id == senderID) // 当前出牌玩家杠牌，不是暗杠，那就是转杠
+     {
+         this->resl_BuGang(req);
+         return;
+     }
 
      if(!f_HGPC_valid)
      {
@@ -640,8 +645,12 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
     int senderID = req.getSenderID();
     MJ_Base::CARD cd = req.getCard();
 
+    if(senderID == this->cur_id)    // 如果是玩家不想暗杠，自摸而发来的则忽略
+    {
+        return;
+    }
+
     this->mem_policy[senderID] = P_None;//取消这个操作
-    MJ_response resp;
 
     qDebug() << "\tcurrent_policy:" << current_policy;
     qDebug() << "\tmem_policy[0]:" << mem_policy[0];
@@ -715,6 +724,9 @@ void MJ_LocalServer::resl_AnGang(MJ_RequestData &req)
     resp.setWho(senderID);
     send(resp);
 
+    this->player[senderID]->Gang(req.getCard());
+    this->player[senderID]->DelCard(req.getCard());
+
     cur_id = senderID;
     this->_FaPaiRequest();
 
@@ -729,8 +741,6 @@ void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
 {
     int senderID = req.getSenderID();
     MJ_Base::CARD cd = req.getCard();
-
-    this->player[senderID]->Gang(cd);
 
     MJ_response resp;
     resp.setType(MJ_response::T_Ok);
@@ -772,11 +782,13 @@ void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
 
         this->tmOut->start(6000);//6s选择时间
         current_policy = P_Gang;
+        current_policy_ID = senderID;
         f_HGPC_valid = true;
         BuGang_falg = true;//此标志用于判断是否抢杠胡
     }
     else
     {
+        this->player[senderID]->Gang(cd);
         cur_id = senderID;
         this->_FaPaiRequest();
 

@@ -35,6 +35,46 @@ MJ_Base::~MJ_Base()
 
 }
 
+int MJ_Base::UndoGang()
+{
+    this->gang[--this->_g] = 0;
+
+    return 0;
+}
+
+int MJ_Base::UndoPeng()
+{
+    this->peng[--this->_p] = 0;
+
+    return 0;
+}
+
+int MJ_Base::UndoChi()
+{
+    this->chi[--this->_c] = 0;
+    this->chi[--this->_c] = 0;
+    this->chi[--this->_c] = 0;
+
+    return 0;
+}
+
+int MJ_Base::UndoPeng(MJ_Base::CARD c)
+{
+    for(int i=0; i<this->_p; i++)
+    {
+        if(c == this->peng[i])
+        {
+            for(int j=i+1; j<this->_p; j++)
+            {
+                this->peng[j-1] = this->peng[j];
+            }
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
 int MJ_Base::getPaiList(MJ_Base::CARD *cds) const
 {
     if(cds != nullptr)

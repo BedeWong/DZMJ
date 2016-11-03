@@ -17,10 +17,6 @@ public:
     int Chi(CARD c, pCCARD ll) override;
     int Hu(CARD c, pCCARD ll) override;
 
-    int UndoGang() override;
-    int UndoPeng() override;
-    int UndoChi() override;
-
     int ChuPai(CARD c) override;
 
 public:

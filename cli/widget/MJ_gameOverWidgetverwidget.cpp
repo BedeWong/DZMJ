@@ -1,5 +1,6 @@
 #include "MJ_gameOverWidget.h"
 
+#include <QBitmap>
 #include <QDebug>
 
 MJ_gameOverWidget::MJ_gameOverWidget(QWidget *parent) : QWidget(parent)
@@ -8,12 +9,15 @@ MJ_gameOverWidget::MJ_gameOverWidget(QWidget *parent) : QWidget(parent)
     this->view = new QListView(this);
     this->cdsWidget = new WinnerPaiListWidget(this);
     this->model = new QStandardItemModel(this);
-    this->winnerLabel = new QLabel(this);
+    //this->winnerLabel = new QLabel(this);
 
     connect(this->okButton, &QPushButton::clicked, this, [&](bool x){
         model->clear();
         this->hide();
     });
+    QPixmap pix(400, 300);
+    pix.fill(QColor(0,0,0,80));
+    this->setMask(pix.mask());
 
     this->resize(400, 300);
     this->okButton->move(170, 260);
@@ -22,8 +26,13 @@ MJ_gameOverWidget::MJ_gameOverWidget(QWidget *parent) : QWidget(parent)
     this->view->setModel(this->model);
     this->cdsWidget->resize(320, 60);
     this->cdsWidget->move(40, 15);
-    this->winnerLabel->resize(400, 30);
-    this->winnerLabel->move(0, 0);
+//    this->winnerLabel->resize(400, 30);
+//    this->winnerLabel->move(0, 0);
+
+    this->setObjectName(QString("gameOverWidget"));
+    this->view->setObjectName(QString("listView"));
+    this->okButton->setObjectName("gameOverOk");
+//    this->winnerLabel->setObjectName("winnerLabel");
 }
 
 void MJ_gameOverWidget::setPai(MJ_Base::CARD *g, MJ_Base::CARD *p, MJ_Base::CARD *c, MJ_Base::CARD *pailist, MJ_Base::CARD card)
@@ -43,7 +52,7 @@ void MJ_gameOverWidget::setFan(std::list<const char *> ll, int fan)
 void MJ_gameOverWidget::setWinner(QString winner)
 {
     QString str(QString::fromLocal8Bit("%1 ºúÅÆ").arg(winner));
-    this->winnerLabel->setText(str);
+    //this->winnerLabel->setText(str);
 }
 
 

@@ -15,6 +15,7 @@ MJ_selfWidget::MJ_selfWidget(QWidget *parent) : QWidget(parent)
     {
         MJ_SelfWidgetItem *item = new MJ_SelfWidgetItem(MJ_Base::MJ_noCard, this);
         connect(item, SIGNAL(ItemClicked(MJ_Base::CARD)), this, SLOT(itemClicked(MJ_Base::CARD)), Qt::QueuedConnection);
+        connect(item, &MJ_SelfWidgetItem::redraw, this, &draw_PaiList, Qt::QueuedConnection);
         this->items.push_back(item);
     }
     this->newCard = new MJ_SelfWidgetItem(MJ_Base::MJ_noCard, this);
@@ -177,9 +178,11 @@ void MJ_selfWidget::draw_PaiList()
                 pailist[j] = pailist[j-1];
             pailist[0] = this->wang;
         }
+        /*  给红中定位置   */
         else if(pailist[i] == MJ_Base::MJ_ZHONG)
         {
-            for(int j=i; j>0; j--)
+            int j = i;
+            for(; j>0; j--)
             {
                 if(pailist[j] > this->wang)
                 {
@@ -189,6 +192,8 @@ void MJ_selfWidget::draw_PaiList()
                 else
                     pailist[j] = pailist[j-1];
             }
+            if(j < 0)
+            pailist[0] = MJ_Base::MJ_ZHONG;
         }
     }
 
@@ -253,6 +258,8 @@ MJ_SelfWidgetItem::MJ_SelfWidgetItem(MJ_Base::CARD cd, QWidget *parent) : QWidge
 
     if(this->card == MJ_Base::MJ_noCard)
         this->hide();
+
+    this->setObjectName("MyCardItem");
 }
 
 MJ_SelfWidgetItem::MJ_SelfWidgetItem(const MJ_SelfWidgetItem &t)
@@ -265,6 +272,7 @@ MJ_SelfWidgetItem::MJ_SelfWidgetItem(const MJ_SelfWidgetItem &t)
         this->hide();
 
     this->setParent(t.parentWidget());
+    this->setObjectName("MyCardItem");
 }
 
 void MJ_SelfWidgetItem::setCard(MJ_Base::CARD cd)
@@ -319,6 +327,7 @@ void MJ_SelfWidgetItem::mouseReleaseEvent(QMouseEvent *)
     }
 }
 
+
 bool MJ_SelfWidgetItem::event(QEvent *e)
 {
     if(e->type() == QEvent::Enter)
@@ -331,8 +340,10 @@ bool MJ_SelfWidgetItem::event(QEvent *e)
     {
         QPoint topLeftPoint = this->mapToParent(QPoint(0,0));
 
-        this->move(topLeftPoint + QPoint(0, 10));
+        if(topLeftPoint.y() == 6)
+            this->move(topLeftPoint + QPoint(0, 10));
     }
 
     return QWidget::event(e);
 }
+

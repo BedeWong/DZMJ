@@ -1,11 +1,12 @@
 #include <QApplication>
 #include <QMetaType>
+#include <QFile>
+#include <QDebug>
 
 #define UNDEBUG 1
 
 #if UNDEBUG
 #include <iostream>
-#include <QDebug>
 #include "cli/MJ_Cli.h"
 #include "pub/MJ_RequestData.h"
 #include "pub/MJ_response.h"
@@ -22,8 +23,15 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-
     QApplication a(argc, argv);
+
+    QFile qss("./DZMJ.qss");
+    qss.open(QIODevice::ReadOnly);
+
+    qss.seek(0);
+    a.setStyleSheet(qss.readAll());
+    qss.close();
+
 #if UNDEBUG
     qRegisterMetaType<MJ_RequestData>("MJ_RequestData");
     qRegisterMetaType<MJ_response>("MJ_response");

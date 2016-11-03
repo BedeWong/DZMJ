@@ -13,13 +13,16 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QPushButton" name="DanJi">
    <property name="geometry">
     <rect>
      <x>150</x>
      <y>90</y>
-     <width>75</width>
-     <height>23</height>
+     <width>81</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -31,8 +34,8 @@
     <rect>
      <x>150</x>
      <y>160</y>
-     <width>75</width>
-     <height>23</height>
+     <width>81</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">

@@ -75,6 +75,7 @@ MJ_Desktop::~MJ_Desktop()
     delete this->player[3];
 
     delete this->request;
+    delete this->gameOverWidget;
 }
 
 void MJ_Desktop::preStart()
@@ -95,7 +96,7 @@ void MJ_Desktop::init_widgets()
     this->DuiMen_widget     = new MJ_DuiMenWidget(this);
     this->ShangJia_widget   = new MJ_ShangJiaWidget(this);
     this->XiaJia_widget     = new MJ_XiaJiaWidget(this);
-    this->gameOverWidget    = new MJ_gameOverWidget(this);
+    this->gameOverWidget    = new MJ_gameOverWidget();
 
     wangAndRemainCardCount = new MJ_wangAndRemainCardCount(this);
 
@@ -154,7 +155,11 @@ void MJ_Desktop::init_widgets()
 
     //  开始按钮
     this->startButton = new QPushButton(QString::fromLocal8Bit("开始"),this);
-    this->startButton->move((this->width()-this->startButton->width())/2, this->height()*3/4);
+//    this->startButton->setStyleSheet(QString("order-radius: 8px;\
+//                                     width: 60px;\
+//                                     heigth: 40px;"));
+    this->startButton->setObjectName("StartButton");
+    //this->startButton->move((this->width()-this->startButton->width())/2, this->height()*3/4);
     connect(this->startButton, SIGNAL(clicked(bool)), this, SLOT(startButtonClicked(bool)), Qt::QueuedConnection);
 
     this->HGPC_widget->move(this->width()*2/3, this->height()-this->self_widget->height()-60);
@@ -162,8 +167,8 @@ void MJ_Desktop::init_widgets()
 
     wangAndRemainCardCount->setGeometry(30, 30, this->width()/12, this->height()/7);
 
-    this->gameOverWidget->move((this->width()-this->gameOverWidget->width())/2,
-                               160);
+    this->gameOverWidget->move(this->mapFromGlobal(QPoint((this->width()-this->gameOverWidget->width())/2,
+                               160)));
     this->gameOverWidget->hide();
 }
 
@@ -227,7 +232,7 @@ void MJ_Desktop::resl_wait(MJ_response &resp)
 {
     //判断自己可以胡杠碰吃？
     int who = resp.getWho();//who：谁出的牌
-    int recverId = resp.getSendTo();//recverID通常是4，MJ_response::SDT_Broadcast
+    //int recverId = resp.getSendTo();//recverID通常是4，MJ_response::SDT_Broadcast
     MJ_Base::CARD card = resp.getCard();//刚才[who]出的牌
 
 
@@ -283,7 +288,6 @@ void MJ_Desktop::resl_wait(MJ_response &resp)
 void MJ_Desktop::resl_Chi(MJ_response &resp)
 {
     int who = resp.getWho();
-    int recverId = resp.getSendTo();
 
     MJ_Base::CARD _chi[4] = {0};
     resp.getChi(_chi);
@@ -311,7 +315,6 @@ void MJ_Desktop::resl_Chi(MJ_response &resp)
 void MJ_Desktop::resl_Peng(MJ_response &resp)
 {
     int who = resp.getWho();
-    int recverId = resp.getSendTo();
 
     //  如果有玩家吃过这张牌，需要回退操作
     if(this->s_hgpc && this->s_stat == S_CHI)
@@ -344,7 +347,6 @@ void MJ_Desktop::resl_Peng(MJ_response &resp)
 void MJ_Desktop::resl_Gang(MJ_response &resp)
 {
     int who = resp.getWho();
-    int recverId = resp.getSendTo();
 
     //  如果有玩家吃过这张牌，需要回退操作
     if(this->s_hgpc && this->s_stat == S_CHI)
@@ -379,7 +381,6 @@ void MJ_Desktop::resl_Gang(MJ_response &resp)
 void MJ_Desktop::resl_Hu(MJ_response &resp)
 {
     int who = resp.getWho();
-    int recverId = resp.getSendTo();
 
     //  如果有玩家吃[碰杠]过这张牌，需要回退操作
     if(this->s_hgpc && this->s_stat == S_CHI)
@@ -427,6 +428,10 @@ void MJ_Desktop::resl_Hu(MJ_response &resp)
 
         this->gameOverWidget->setPai(g, p, c, pailist, resp.getCard());
         this->gameOverWidget->setFan(list, fan);
+        QPoint point((this->width()-this->gameOverWidget->width()) / 2,
+                    (this->height() - this->gameOverWidget->height())/2);
+        point = this->mapFromGlobal(point);
+        this->gameOverWidget->move(point);
         this->gameOverWidget->show();
     }
 
@@ -445,7 +450,6 @@ void MJ_Desktop::resl_Hu(MJ_response &resp)
 void MJ_Desktop::resl_FaPai(MJ_response &resp)
 {
     int who = resp.getWho();
-    int recverID = resp.getSendTo();
     this->self_newCard = resp.getCard();
 
     cur_zhuapai = who;//标记当前要出牌的玩家
@@ -464,14 +468,22 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
         this->self_widget->draw_PaiList();
 
         int hg_stat = 0;
-        if(this->self->testGang(self_newCard))
+        if(this->self->testGang(self_newCard))//暗杠
+        {
+            anGangCard = this->self_newCard;
             hg_stat |= S_GANG;
+        }
+        else if((anGangCard = this->self->testAnGang()) != MJ_Base::MJ_noCard)
+        {
+            hg_stat |= S_GANG;
+        }
         if(this->self->testHu(self_newCard))
             hg_stat |= S_HU;
-        if(this->self->testBuGang(self_newCard))
+        if(this->self->testBuGang(self_newCard))//  补杠：补杠可被抢杠胡
             hg_stat |= S_BuGang;
         if(this->self->testZiMo(self_newCard))
             hg_stat |= S_ZiMo;
+
         if(hg_stat != S_None)
         {
             /***
@@ -571,14 +583,13 @@ void MJ_Desktop::resl_ChuPai(MJ_response &resp)
     qDebug() << "_Desktop::resl_ChuPai:" << " endl" << endl;
 }
 
-void MJ_Desktop::resl_OK(MJ_response &resp)
+void MJ_Desktop::resl_OK(MJ_response &)
 {
 
 }
 
 void MJ_Desktop::resl_Unsucc(MJ_response &resp)
 {
-    int who = resp.getWho();
     int recverID = resp.getSendTo();
 
     if(recverID == this->ID)
@@ -590,7 +601,7 @@ void MJ_Desktop::resl_Unsucc(MJ_response &resp)
     }
 }
 
-void MJ_Desktop::resl_Over(MJ_response &resp)
+void MJ_Desktop::resl_Over(MJ_response &)
 {
 
     this->clock_wdiget->clockStart(0, 0, false);
@@ -686,8 +697,17 @@ void MJ_Desktop::HGPCWidgetSlot()
         qDebug() << QString::fromLocal8Bit(" 我方胡牌：") << this->s_card;
         break;
     case MJ_HGPCWidget::RES_GANG:
-        req.setType(MJ_RequestData::R_Gang);
-        qDebug() << QString::fromLocal8Bit(" 我方杠牌：") << this->s_card;
+        if(this->anGangCard != MJ_Base::MJ_noCard) // 可以暗杠就先暗杠
+        {
+            req.setType(MJ_RequestData::R_AnGang);
+            this->s_card = this->anGangCard;
+            qDebug() << QString::fromLocal8Bit(" 我方暗杠：") << this->s_card;
+        }
+        else
+        {
+            req.setType(MJ_RequestData::R_Gang);
+            qDebug() << QString::fromLocal8Bit(" 我方明杠：") << this->s_card;
+        }
         break;
     case MJ_HGPCWidget::RES_PENG:
         req.setType(MJ_RequestData::R_Peng);

@@ -100,6 +100,7 @@ private:
     int s_id;//ÎªË­±£´æ×´Ì¬
     MJ_Base::CARD s_card;
     MJ_Base::CARD self_newCard;
+    MJ_Base::CARD anGangCard;
 
     MJ_HGPCWidget *HGPC_widget;
     MJ_CLockWidget *clock_wdiget;

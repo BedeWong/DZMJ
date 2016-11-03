@@ -59,21 +59,6 @@ int MJ_otherPlayer::Hu(MJ_Base::CARD c, MJ_Base::pCCARD plist)
     return 0;
 }
 
-int MJ_otherPlayer::UndoGang()
-{
-
-}
-
-int MJ_otherPlayer::UndoPeng()
-{
-
-}
-
-int MJ_otherPlayer::UndoChi()
-{
-
-}
-
 int MJ_otherPlayer::ChuPai(MJ_Base::CARD c)
 {
     this->paiRecList[this->paiRecCount++] = c;
