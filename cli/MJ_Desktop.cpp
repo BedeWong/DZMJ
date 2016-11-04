@@ -403,41 +403,83 @@ void MJ_Desktop::resl_Hu(MJ_response &resp)
 
     MJ_Base::CARD pailist[16] = {0};
     MJ_Base::CARD g[8]={0}, p[8]={0}, c[16]={0};
+    int fan = 0;
+    auto lst = std::list<const char*>();
+
     resp.getPaiList(pailist);
     resp.getgpc(g, p, c);
 
     qDebug() << QString::fromLocal8Bit("玩家%1胜出:").arg(who) << "pailist:" << pailist;
     qDebug() << "\tgang:" << g << "  p:" << p << " c:" << c;
+//    enum HuType{
+//        HU_JiePaio,
+//        HU_ZiMo,
+//        HU_QiangGang,
+//        HU_GangShangHua
+//    };
+    qDebug() << "\t  huType:" << resp.getHuType();
 
     MJ_Player win = MJ_Player();
+    win.init(pailist, this->self->getWang());
     win.setPengList(p);
     win.setGangList(g);
     win.setChiList(c);
-    win.setPaiList(pailist);
-    win.setWang(this->self->getWang());
-    win.AnalysisHGPC();
-    if(win.testHu(resp.getCard()))
-    {
-        MJ_AnalyResult analy(win);
-        analy.calc_BeiShu(win, resp.getCard(), MJ_AnalyResult::F_JiePao);
-        int fan = analy.getFan();
-        auto list = analy.HU_names();
 
-        this->gameOverWidget->setPai(g, p, c, pailist, resp.getCard());
-        this->gameOverWidget->setFan(list, fan);
-        this->gameOverWidget->show();
+    MJ_Base::CARD card = resp.getCard();
+    MJ_AnalyResult::HU_FLAG huFlag;
+    MJ_response::HuType hutype = resp.getHuType();
+    if(hutype == MJ_response::HU_GangShangHua)
+    {
+        huFlag = MJ_AnalyResult::F_GangShangHua;
+        win.DelCard(card);
+        win.getPaiList(pailist);
+    }
+    else if(hutype == MJ_response::HU_QiangGang)
+    {
+        huFlag = MJ_AnalyResult::F_QiangGang;
+    }
+    else if(hutype == MJ_response::HU_ZiMo)
+    {
+        huFlag = MJ_AnalyResult::F_ZiMo;
+        win.DelCard(card);
+        win.getPaiList(pailist);
+    }
+    else if(hutype == MJ_response::HU_JiePaio)
+    {
+        huFlag = MJ_AnalyResult::F_JiePao;
+    }
+    else {
+        // err
     }
 
-    if(who == this->ID)
+    win.AnalysisHGPC();
+
+    MJ_AnalyResult analy;
+    if(win.testHu(MJ_Base::MJ_WANG))
     {
-        this->self->Hu(resp.getCard(), pailist);
-        this->HGPC_widget->hide();
+        analy = win.getAnalyResult(MJ_Base::MJ_WANG);
     }
     else
-        this->player[who]->Hu(resp.getCard(), pailist);
+    {
+        analy = win.getAnalyResult(card);
+    }
+    analy.calc_BeiShu(win, card, huFlag);
+    fan = analy.getFan();
+    lst = analy.HU_names();
+
+    qDebug() << "huList:";
+    for(auto it : lst)
+    {
+        qDebug() << "\t" << QString::fromLocal8Bit(it);
+    }
+
+    this->HGPC_widget->hide();
     /*********
      *    更新界面
      */
+    this->gameOverWidget->setPai(g, p, c, pailist, resp.getCard());
+    this->gameOverWidget->setFan(lst, fan);
+    this->gameOverWidget->show();
 }
 
 void MJ_Desktop::resl_FaPai(MJ_response &resp)

@@ -73,7 +73,7 @@ void MJ_LocalServer::start()
     MJ_Base::CARD cards[4][16] = {0};
     paiCount = 0;
     maxPaiCount = 136;
-    BuGang_falg = false;
+    gang_falg = false;
     f_HGPC_valid = false;
     wj_ready = 0;//玩家还没整理好手上的牌
 
@@ -230,6 +230,12 @@ void MJ_LocalServer::faPai()
         mem_policy[cur_id] |= P_Hu;
     if(player[cur_id]->testGang(card))
         mem_policy[cur_id] |= P_Gang;
+    if(player[cur_id]->testAnGang() != MJ_Base::MJ_noCard)
+        mem_policy[cur_id] |= P_Gang;
+    if(player[cur_id]->testBuGang(card))
+        mem_policy[cur_id] |= P_Gang;
+    if(player[cur_id]->testZiMo(card))
+        mem_policy[cur_id] |= P_Hu;
 
     if(mem_policy[cur_id] != P_None)
     {
@@ -346,6 +352,7 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
         qDebug() << "svr  resl_ChuPai() continue FaPai";
         cur_id ++;
         cur_id %= 4;
+        gang_falg = false;//此标志用于判断是否抢杠胡
         this->_FaPaiRequest();
     }
     else   // 出错了！
@@ -420,17 +427,36 @@ void MJ_LocalServer::resl_Hu(MJ_RequestData &req)
         resp.setSendTo(senderID);
         send(resp);
 
+        // 胡牌消息体
         resp.setType(MJ_response::T_Hu);
         resp.setCard(req.getCard());
         resp.setWho(senderID);
+
         MJ_Base::CARD g[8] = {0}, p[8] = {0}, c[16] = {0}, pai[16] = {0};
         this->player[senderID]->getGang(g);
         this->player[senderID]->getPeng(p);
         this->player[senderID]->getChi(c);
         this->player[senderID]->getPaiList(pai);
+
         resp.setgpc(g, p, c);
         resp.setPaiList(pai);
         resp.setSendTo(MJ_response::SDT_Broadcast);
+
+        if(gang_falg && cur_id == senderID)  // 杠上花
+        {
+            resp.setHuType(MJ_response::HU_GangShangHua);
+        }
+        else if(gang_falg && cur_id != senderID)  //抢杠胡
+        {
+            resp.setHuType(MJ_response::HU_QiangGang);
+        }
+        else if(cur_id == senderID)//自摸
+        {
+            resp.setHuType(MJ_response::HU_ZiMo);
+        }
+        else
+            resp.setHuType(MJ_response::HU_JiePaio);
+
         send(resp);
 
         //本局结束
@@ -498,12 +524,8 @@ void MJ_LocalServer::resl_Gang(MJ_RequestData &req)
              // 补牌
              cur_id = current_policy_ID;
              this->player[cur_id]->Gang(cd);//
+             gang_falg = true;//此标志用于判断是否抢杠胡
              this->_FaPaiRequest();
-
-//             resp.setType(MJ_response::T_ChuPai);
-//             resp.setSendTo(MJ_response::SDT_Broadcast);
-//             resp.setWho(cur_id);
-//             send(resp);
          }
      }
      else
@@ -554,12 +576,9 @@ void MJ_LocalServer::resl_Peng(MJ_RequestData &req)
             if(this->tmOut->isActive())
                 this->tmOut->stop();
             this->player[current_policy_ID]->Peng(cd);
+            gang_falg = false;//此标志用于判断是否抢杠胡
 
             this->faPai_NoCard();
-//            resp.setType(MJ_response::T_ChuPai);
-//            resp.setSendTo(MJ_response::SDT_Broadcast);
-//            resp.setWho(senderID);
-//            send(resp);
         }
     }
     else
@@ -619,18 +638,9 @@ void MJ_LocalServer::resl_Chi(MJ_RequestData &req)
                 this->tmOut->stop();
 
             this->player[current_policy_ID]->Chi(cd, this->chi);
+            gang_falg = false;//此标志用于判断是否抢杠胡
 
             this->faPai_NoCard();
-            /*********************************************************************
-            // ERR  出牌消息是响应后告知有牌出了
-            // 在这里看来还是要使用二次确认消息了，desktop类在二次确认消息里reset数据
-            *********************************************************************/
-//            resp.setType(MJ_response::T_ChuPai);
-//            resp.setSendTo(MJ_response::SDT_Broadcast);
-//            resp.setWho(senderID);
-//            resp.setCard(MJ_Base::MJ_noCard);
-
-//            send(resp);
         }
     }
     else // 回应不成功
@@ -670,6 +680,7 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
 
             cur_id++;
             cur_id %= 4;
+            gang_falg = false;//此标志用于判断是否抢杠胡
             this->_FaPaiRequest();
 
             return;
@@ -684,18 +695,14 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
             // 补牌
             cur_id = current_policy_ID;
             this->player[current_policy_ID]->Gang(cd);
+            gang_falg = true;//此标志用于判断是否抢杠胡
             this->_FaPaiRequest();
-
-//            resp.setType(MJ_response::T_ChuPai);
-//            resp.setSendTo(MJ_response::SDT_Broadcast);
-//            resp.setWho(senderID);
-
-//            send(resp);
         }
         else if(current_policy == P_Peng)
         {
             cur_id = current_policy_ID;
             this->player[current_policy_ID]->Peng(cd);
+            gang_falg = false;//此标志用于判断是否抢杠胡
             this->faPai_NoCard();
         }
         else if(current_policy == P_Chi)
@@ -703,6 +710,7 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
             cur_id = current_policy_ID;
             this->player[current_policy_ID]->Chi(cd, this->chi);//this->chi  是之前玩家发送吃请求
                                                 //  时保存下来的
+            gang_falg = false;//此标志用于判断是否抢杠胡
             this->faPai_NoCard();
         }
     }
@@ -728,13 +736,8 @@ void MJ_LocalServer::resl_AnGang(MJ_RequestData &req)
     this->player[senderID]->DelCard(req.getCard());
 
     cur_id = senderID;
+    gang_falg = true;//此标志用于判断是否抢杠胡
     this->_FaPaiRequest();
-
-//    this->faPai_NoCard();
-//    resp.setType(MJ_response::T_ChuPai);
-//    resp.setSendTo(MJ_response::SDT_Broadcast);
-//    resp.setWho(senderID);
-//    send(resp);
 }
 
 void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
@@ -784,7 +787,7 @@ void MJ_LocalServer::resl_BuGang(MJ_RequestData &req)
         current_policy = P_Gang;
         current_policy_ID = senderID;
         f_HGPC_valid = true;
-        BuGang_falg = true;//此标志用于判断是否抢杠胡
+        gang_falg = true;//此标志用于判断是否抢杠胡
     }
     else
     {

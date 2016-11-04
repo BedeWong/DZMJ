@@ -847,6 +847,9 @@ int MJ_Player::Gang(MJ_Base::CARD card)
         if(card == this->peng[i]) // ×ª¸Ü
         {
             this->UndoPeng(card);
+            this->gang[_g++] = card;
+            this->gpc_seq[this->gpc_seq_count++] = SEQ_GANG;
+            this->DelCard(card);
             return 0;
         }
     }

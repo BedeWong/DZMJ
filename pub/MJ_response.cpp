@@ -24,6 +24,11 @@ void MJ_response::setVer(MJ_response::VER v)
     this->ver = v;
 }
 
+void MJ_response::setHuType(MJ_response::HuType hu)
+{
+    this->huType = hu;
+}
+
 void MJ_response::setSendTo(int sendto)
 {
     this->SendTo = sendto;
@@ -83,6 +88,11 @@ void MJ_response::setPaiCount(int count)
 MJ_response::Type MJ_response::getType() const
 {
     return this->type;
+}
+
+MJ_response::HuType MJ_response::getHuType() const
+{
+    return this->huType;
 }
 
 MJ_Base::CARD MJ_response::getCard() const

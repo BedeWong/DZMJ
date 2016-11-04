@@ -70,7 +70,7 @@ private:
     int current_policy;//Policy类型,保存当前级别最高的（胡>杠[碰]>吃）
     int current_policy_ID;
     bool f_HGPC_valid;//定义 胡杠碰吃 有效，有时候有可能响应或延迟问题导致下家已经发牌了，上家才送来碰牌消息
-    bool BuGang_falg;
+    bool gang_falg;
     MJ_Base::CARD chi[4];
 
     int cur_id;

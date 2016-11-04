@@ -36,6 +36,13 @@ public:
         SDT_Broadcast = 4
     };
 
+    enum HuType{
+        HU_JiePaio,
+        HU_ZiMo,
+        HU_QiangGang,
+        HU_GangShangHua
+    };
+
     typedef unsigned int size_t;
 
 public:
@@ -44,6 +51,7 @@ public:
     void addType(Type t);
     void setType(Type t);
     void setVer(VER v);
+    void setHuType(HuType hu);
     void setSendTo(int sendto);
     void setWho(int w);
     void setChi(MJ_Base::CARD chi[4]);
@@ -55,6 +63,7 @@ public:
     void setPaiCount(int count);
 
     Type getType()const;
+    HuType getHuType()const;
     VER getVer()const;
     int getSendTo()const;
     int getWho()const;
@@ -69,6 +78,7 @@ public:
 private:
     VER ver;
     Type type;
+    HuType huType;
     int SendTo;// a id, recver's id, range 0-4
     int who;//表示上次动作谁做出来的（例如：出牌，通知其他玩家时标志谁出的牌）
     size_t len;//  msg length
