@@ -1,6 +1,6 @@
 #include "MJ_gameOverWidget.h"
 
-#include <QBitmap>
+#include <QPainter>
 #include <QDebug>
 
 MJ_gameOverWidget::MJ_gameOverWidget(QWidget *parent) : QWidget(parent)
@@ -15,9 +15,6 @@ MJ_gameOverWidget::MJ_gameOverWidget(QWidget *parent) : QWidget(parent)
         model->clear();
         this->hide();
     });
-    QPixmap pix(400, 300);
-    pix.fill(QColor(0,0,0,80));
-    this->setMask(pix.mask());
 
     this->resize(400, 300);
     this->okButton->move(170, 260);
@@ -53,6 +50,15 @@ void MJ_gameOverWidget::setWinner(QString winner)
 {
     QString str(QString::fromLocal8Bit("%1 ºúÅÆ").arg(winner));
     //this->winnerLabel->setText(str);
+}
+
+void MJ_gameOverWidget::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    QPixmap pix(this->width(), this->height());
+    pix.fill(QColor(0, 0, 0, 100));
+
+    painter.drawPixmap(0,0,pix);
 }
 
 

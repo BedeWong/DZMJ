@@ -96,7 +96,7 @@ void MJ_Desktop::init_widgets()
     this->DuiMen_widget     = new MJ_DuiMenWidget(this);
     this->ShangJia_widget   = new MJ_ShangJiaWidget(this);
     this->XiaJia_widget     = new MJ_XiaJiaWidget(this);
-    this->gameOverWidget    = new MJ_gameOverWidget();
+    this->gameOverWidget    = new MJ_gameOverWidget(this);
 
     wangAndRemainCardCount = new MJ_wangAndRemainCardCount(this);
 
@@ -155,11 +155,8 @@ void MJ_Desktop::init_widgets()
 
     //  开始按钮
     this->startButton = new QPushButton(QString::fromLocal8Bit("开始"),this);
-//    this->startButton->setStyleSheet(QString("order-radius: 8px;\
-//                                     width: 60px;\
-//                                     heigth: 40px;"));
     this->startButton->setObjectName("StartButton");
-    //this->startButton->move((this->width()-this->startButton->width())/2, this->height()*3/4);
+    this->startButton->move((this->width()-this->startButton->width())/2, this->height()*3/4);
     connect(this->startButton, SIGNAL(clicked(bool)), this, SLOT(startButtonClicked(bool)), Qt::QueuedConnection);
 
     this->HGPC_widget->move(this->width()*2/3, this->height()-this->self_widget->height()-60);
@@ -167,8 +164,8 @@ void MJ_Desktop::init_widgets()
 
     wangAndRemainCardCount->setGeometry(30, 30, this->width()/12, this->height()/7);
 
-    this->gameOverWidget->move(this->mapFromGlobal(QPoint((this->width()-this->gameOverWidget->width())/2,
-                               160)));
+    this->gameOverWidget->move((this->width()-this->gameOverWidget->width())/2,
+                               120);
     this->gameOverWidget->hide();
 }
 
@@ -428,10 +425,6 @@ void MJ_Desktop::resl_Hu(MJ_response &resp)
 
         this->gameOverWidget->setPai(g, p, c, pailist, resp.getCard());
         this->gameOverWidget->setFan(list, fan);
-        QPoint point((this->width()-this->gameOverWidget->width()) / 2,
-                    (this->height() - this->gameOverWidget->height())/2);
-        point = this->mapFromGlobal(point);
-        this->gameOverWidget->move(point);
         this->gameOverWidget->show();
     }
 
@@ -743,6 +736,7 @@ void MJ_Desktop::startButtonClicked(bool)
 
     this->request->req_send(req);
     this->startButton->hide();
+    this->gameOverWidget->hide();
 }
 
 

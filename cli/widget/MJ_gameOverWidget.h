@@ -27,6 +27,9 @@ public:
 
     void setWinner(QString winner);
 
+protected:
+    void paintEvent(QPaintEvent *event);
+
 signals:
 
 public slots:
