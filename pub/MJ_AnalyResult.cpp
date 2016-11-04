@@ -1,6 +1,7 @@
 #include "MJ_AnalyResult.h"
 #include "MJ_Player.h"
 #include <cstring>
+#include <QDebug>
 
 #ifdef DEBUG
 #include <iostream>
@@ -166,7 +167,7 @@ int MJ_AnalyResult::canHu(MJ_Player::CARD *ting)
 //                dan==0&&kz+dz+el==2 ||                        (单王抓)
 //                dz==1 && kz+el==0 && dan==2                         kz+dz+el == 2&&dan==0 (单王抓)
 //                kz+dz+el==3&&dan==1
-                if(dan_count==0 && dz_count+el_count+kz_count==0)
+                if(dan_count==1 && dz_count+el_count+kz_count==0)
                 {
                     ting[tCount++] = MJ_Player::MJ_WANG;//
                 }
@@ -324,6 +325,17 @@ int MJ_AnalyResult::addHu(MJ_AnalyResult::HU _hu)
 
 int MJ_AnalyResult::calc_BeiShu(const MJ_Player &mj_set,MJ_AnalyResult::CARD card, HU_FLAG flag)
 {
+    qDebug() << "MJ_AnalyResult::calc_BeiShu :";
+    qDebug() << "\twang:" << mj_set.wang;
+    qDebug() << "\tpai :" << mj_set.paiList;
+    qDebug() << "\tChi:" << mj_set.chi;
+    qDebug() << "\tpeng:" << mj_set.peng;
+    qDebug() << "\tGang:" << mj_set.gang;
+    qDebug() << "\tcHu  :" << mj_set.cHuList;
+    qDebug() << "\tcGang:" << mj_set.cGangList;
+    qDebug() << "\tcPeng:" << mj_set.cPengList;
+    qDebug() << "\tcChi :" << mj_set.cChiList;
+
     CARD all_pai[16] = {0};  //
     CARD all_st[8] = {0};
     CARD all_sl[24] = {0};
@@ -402,7 +414,13 @@ int MJ_AnalyResult::calc_BeiShu(const MJ_Player &mj_set,MJ_AnalyResult::CARD car
     }
     for(auto i=0; i<mj_set.paiCount; i++)
     {
-        all_pai[all_paiCount++] = mj_set.paiList[i];
+        CARD t = mj_set.paiList[i];
+        if(t == MJ_Base::MJ_ZHONG)
+        {
+            t = mj_set.wang;
+            has_zhong = true;
+        }
+        all_pai[all_paiCount++] = t;
     }
     //------------------所有的牌放在一起了----------------------
     //---------  顺便把  碰 吃 的也  收集了一份--------------
@@ -448,11 +466,12 @@ int MJ_AnalyResult::calc_BeiShu(const MJ_Player &mj_set,MJ_AnalyResult::CARD car
     }
 
     if(card == MJ_Player::MJ_WANG)
+    //if(card == mj_set.wang)
     {
         switch(this->w_count)
         {
         case 1:
-            if(this->dan == 0 && this->el_count+this->kz_count+ this->dz_count==0)
+            if(this->dan_count == 0 && this->el_count+this->kz_count+ this->dz_count==0)
             {
                 if(mj_set.NewCard == MJ_Player::MJ_WANG)
                     this->addHu(this->HU_DanWangZhuaWang);

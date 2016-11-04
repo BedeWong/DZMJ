@@ -360,7 +360,8 @@ int MJ_Player::cPeng()
     {
         if(this->paiList[i] == this->paiList[i+1])  // 相同的两张牌
         {
-            this->cPengList[count++] = this->paiList[i];
+            if(paiList[i] != this->wang)
+                this->cPengList[count++] = this->paiList[i];
 
             if(this->paiList[i] == this->paiList[i + 2])    //有可能三张相同的  甚至四张相同的
             {
@@ -393,7 +394,8 @@ int MJ_Player::cGang()
         if(this->paiList[i] == this->paiList[i+1] &&
                 this->paiList[i] == this->paiList[i+2])
         {
-            this->cGangList[count++] = this->paiList[i];
+            if(paiList[i] != this->wang)
+                this->cGangList[count++] = this->paiList[i];
             if(this->paiList[i] == this->paiList[i+3])
                 i += 3;
             else
@@ -737,10 +739,15 @@ int MJ_Player::analysis()
         {
             for(auto i=0; i<tingCount; i++)
             {
-//                auto it = AnalyResults.find(allTing[i]);
-                //if(it != AnalyResults.end())
+                qDebug() << __FUNCTION__;
+                qDebug() << "\tAllting:" << allTing;
+                CARD tmp = allTing[i];
+                if(tmp != this->wang)  //王牌之前被替换成红中
                 {
-                    AnalyResults[allTing[i]] = analy;
+                    AnalyResults[tmp] = analy;
+                }
+                else{
+                    AnalyResults[MJ_ZHONG] = analy;
                 }
             }
         }
@@ -759,10 +766,10 @@ void MJ_Player::AnalysisHGPC()
     cHu();
 
     qDebug() << __FUNCTION__ << __LINE__ << " :";
-    qDebug() << "\tcChiCount:" << cChiCount << " "
-             << "\tcPengCount:" << cPengCount << " "
-             << "\tcGangCount:" << cGangCount << " "
-             << "\tcHuCount:" << cHuCount << " ";
+    qDebug() << "\tcChiCount:" << cChiCount << this->cChiList << endl
+             << "\tcPengCount:" << cPengCount << this->cPengList << endl
+             << "\tcGangCount:" << cGangCount << this->cGangList << endl
+             << "\tcHuCount:" << cHuCount << this->cHuList;
 }
 
 // 返回分析好的 胡杠碰吃 结果
@@ -1025,7 +1032,8 @@ MJ_Base::CARD MJ_Player::testAnGang()
 {
     for (int i=0; i<this->paiCount; i++)
     {
-        if(paiList[i] == paiList[i+1] &&
+        if( this->paiList[i] != this->wang &&
+                paiList[i] == paiList[i+1] &&
                 paiList[i] == paiList[i+2] &&
                 paiList[i] == paiList[i+3] &&
                 paiList[i] == paiList[i+4])
