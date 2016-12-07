@@ -765,11 +765,11 @@ void MJ_Player::AnalysisHGPC()
     cGang();
     cHu();
 
-    qDebug() << __FUNCTION__ << __LINE__ << " :";
-    qDebug() << "\tcChiCount:" << cChiCount << this->cChiList << endl
-             << "\tcPengCount:" << cPengCount << this->cPengList << endl
-             << "\tcGangCount:" << cGangCount << this->cGangList << endl
-             << "\tcHuCount:" << cHuCount << this->cHuList;
+//    qDebug() << __FUNCTION__ << __LINE__ << " :";
+//    qDebug() << "\tcChiCount:" << cChiCount << this->cChiList << endl
+//             << "\tcPengCount:" << cPengCount << this->cPengList << endl
+//             << "\tcGangCount:" << cGangCount << this->cGangList << endl
+//             << "\tcHuCount:" << cHuCount << this->cHuList;
 }
 
 // 返回分析好的 胡杠碰吃 结果
@@ -1019,8 +1019,8 @@ bool MJ_Player::testChi(MJ_Base::CARD c)
     if(c == MJ_noCard)
         return false;
 
-    qDebug() << __FUNCTION__ << __LINE__ << "test card:" << c;
-    qDebug() << "\tcCount = " << cChiCount << ", chilist:" << this->cChiList;
+//    qDebug() << __FUNCTION__ << __LINE__ << "test card:" << c;
+//    qDebug() << "\tcCount = " << cChiCount << ", chilist:" << this->cChiList;
     for(auto i=0; i<this->cChiCount; i++)
     {
         if(c == this->cChiList[i])

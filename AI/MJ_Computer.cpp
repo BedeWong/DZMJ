@@ -1,4 +1,5 @@
 #include "MJ_Computer.h"
+#include "../pub/MJ_RequestData.h"
 
 #include <QDebug>
 
@@ -37,18 +38,23 @@ void MJ_Computer::resl_init(MJ_response &resp)
         MJ_Base::CARD wang;
         wang = resp.getCard();
 
-        this->player->init(lst, wang);   // 初始化 分析 发送分析结果
-        //this->player->analysis();
+        this->player->init(lst, resp.getCard()); // 初始化数据
         MJ_Base::CARD h[16] = {0};
         MJ_Base::CARD g[16] = {0};
         MJ_Base::CARD p[16] = {0};
         MJ_Base::CARD c[16] = {0};
+
+        this->player->AnalysisHGPC();
+        this->player->getCanHuList(h, 16);
+        this->player->getCanGangList(g, 16);
+        this->player->getCanPengList(p, 16);
+        this->player->getCanChiList(c, 16);
+
         MJ_RequestData req(this->Id);
         req.setType(MJ_RequestData::R_HGPCList);
         req.setHGPCList(h, g, p, c);
-        req.setSenderID(this->Id);
+        this->request->req_send(req);
 
-        request->req_send(req);
         //qDebug() << "Computer::resl_init " << recvID << "  " << this->Id;
     }
 
@@ -56,22 +62,88 @@ void MJ_Computer::resl_init(MJ_response &resp)
 
 void MJ_Computer::resl_wait(MJ_response &resp)
 {
+    int who = resp.getWho();
+    MJ_Base::CARD card = resp.getCard();
 
+    if(who == this->Id)
+        return ;
+
+    MJ_RequestData req(this->Id);
+    if(this->player->testHu(card))
+    {
+        req.setType(MJ_RequestData::R_Hu);
+    }
+    else if(this->player->testGang(card))
+    {
+        req.setType(MJ_RequestData::R_Gang);
+    }
+    else if(this->player->testPeng(card))
+    {
+        req.setType(MJ_RequestData::R_Peng);
+    }
+    else if((who+1)%4 == this->Id && this->player->testChi(card))
+    {
+        req.setType(MJ_RequestData::R_Chi);
+        MJ_Base::CARD chilist[8][4] = {0};
+        int ret = this->player->getCChiList(card, chilist);
+        req.setChi(chilist[0]);
+
+        qDebug() << "Computer::" << ret << " " << chilist[0];
+    }
+    else
+    {
+        req.setType(MJ_RequestData::R_CanCel);
+    }
+
+    req.setCard(resp.getCard());
+    this->request->req_send(req);
 }
 
 void MJ_Computer::resl_Chi(MJ_response &resp)
 {
+    int who = resp.getWho();
+
+    MJ_Base::CARD _chi[4] = {0};
+    resp.getChi(_chi);
+
+    if(who == this->Id)
+    {
+        this->player->Chi(resp.getCard(), _chi);
+
+        MJ_Base::CARD lst[16] = {0};
+        int count  = this->player->getPaiList(lst);
+        qDebug() << "_Computer::" << count << QString::fromLocal8Bit("剩余牌数:") << lst;
+    }
 
 }
 
 void MJ_Computer::resl_Peng(MJ_response &resp)
 {
+    int who = resp.getWho();
+
+    if(who == this->Id)
+    {
+        this->player->Peng(resp.getCard());
+
+        MJ_Base::CARD lst[16] = {0};
+        int count  = this->player->getPaiList(lst);
+        qDebug() << "_Computer::" << count << QString::fromLocal8Bit("剩余牌数:") << lst;
+    }
 
 }
 
 void MJ_Computer::resl_Gang(MJ_response &resp)
 {
+    int who = resp.getWho();
 
+    if(who == this->Id)
+    {
+        this->player->Gang(resp.getCard());
+
+        MJ_Base::CARD lst[16] = {0};
+        int count  = this->player->getPaiList(lst);
+        qDebug() << "_Computer::" << count << QString::fromLocal8Bit("剩余牌数:") << lst;
+    }
 }
 
 void MJ_Computer::resl_Hu(MJ_response &resp)
@@ -83,14 +155,17 @@ void MJ_Computer::resl_FaPai(MJ_response &resp)
 {
     if(resp.getSendTo() == this->Id)
     {
-        this->resp = resp;
+        this->card = resp.getCard();
+        if(this->card == MJ_Base::MJ_noCard)
+            this->card = this->player->getLastCard();
+
         tm->start(2000);
     }
     return ;
 
 
-    //qDebug() << "Computer::resl_FaPai card=" << resp.getCard() << "id = " << this->Id << " who:"
-    //         << resp.getWho() << "recvID = " << resp.getSendTo();
+    qDebug() << "Computer::resl_FaPai card=" << resp.getCard() << "id = " << this->Id << " who:"
+             << resp.getWho() << "recvID = " << resp.getSendTo();
     int recvID = resp.getSendTo();
     if(recvID == this->Id)
     {
@@ -100,7 +175,18 @@ void MJ_Computer::resl_FaPai(MJ_response &resp)
         // 出牌
         MJ_RequestData req(this->Id);
         req.setType(MJ_RequestData::R_ChuPai);
-        req.setCard(this->card);
+
+        if(card == MJ_Base::MJ_noCard)
+        {
+            qDebug() << "\t this card:" << this->player->getLastCard();
+            req.setCard(this->player->getLastCard());
+        }
+        else
+        {
+            qDebug() << "\t this card:" << card;
+            req.setCard(this->card);
+        }
+
         req.setSenderID(this->Id);
 
         request->req_send(req);
@@ -109,7 +195,32 @@ void MJ_Computer::resl_FaPai(MJ_response &resp)
 
 void MJ_Computer::resl_ChuPai(MJ_response &resp)
 {
+    int who = resp.getWho();
+    qDebug() << "_Computer:chupai:" << who;
+    if(who == this->Id)
+    {
+        this->player->ChuPai(resp.getCard());
 
+        MJ_Base::CARD lst[16] = {0};
+        int count = this->player->getPaiList(lst);
+        qDebug() << "_Computer:chupai:" << count << ":" << lst;
+
+        MJ_Base::CARD h[16] = {0};
+        MJ_Base::CARD g[16] = {0};
+        MJ_Base::CARD p[16] = {0};
+        MJ_Base::CARD c[16] = {0};
+
+        this->player->AnalysisHGPC();
+        this->player->getCanHuList(h, 16);
+        this->player->getCanGangList(g, 16);
+        this->player->getCanPengList(p, 16);
+        this->player->getCanChiList(c, 16);
+
+        MJ_RequestData req(this->Id);
+        req.setType(MJ_RequestData::R_HGPCList);
+        req.setHGPCList(h, g, p, c);
+        this->request->req_send(req);
+    }
 }
 
 void MJ_Computer::resl_OK(MJ_response &resp)
@@ -142,6 +253,7 @@ void MJ_Computer::responseSlot(MJ_response response)
         break;
     case MJ_response::T_Wait:
         //qDebug() << "Computer::responseSlot: type:" << "T_Wait";
+        this->resl_wait(response);
         break;
     case MJ_response::T_Chi:
         ////qDebug() << "Computer::responseSlot: type:" << "T_Chi";
@@ -190,6 +302,8 @@ void MJ_Computer::tmSlot()
     MJ_RequestData data(this->Id);
     data.setType(MJ_RequestData::R_ChuPai);
     data.setSenderID(this->Id);
-    data.setCard(this->resp.getCard());
+    data.setCard(this->card);
     this->request->req_send(data);
+
+    qDebug() << "_Computer" << "2s chupai";
 }

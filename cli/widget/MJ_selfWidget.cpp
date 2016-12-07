@@ -177,6 +177,7 @@ void MJ_selfWidget::draw_PaiList()
             for(int j=i; j>0; j--)
                 pailist[j] = pailist[j-1];
             pailist[0] = this->wang;
+            continue;
         }
         /*  给红中定位置   */
         else if(pailist[i] == MJ_Base::MJ_ZHONG)

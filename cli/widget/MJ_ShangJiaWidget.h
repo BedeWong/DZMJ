@@ -32,7 +32,7 @@ public slots:
 private:
     enum DisplaySize{
         DS_Width = 100,    // x
-        DS_Height = 800    // y
+        DS_Height = 900    // y
     };
 
     qreal x_scale, y_scale;

@@ -61,4 +61,5 @@ FORMS += \
     cli/MJ_Desktop.ui
 
 RESOURCES += \
-    cli/img/img.qrc
+    cli/img/img.qrc \
+    cli/qss/qss.qrc

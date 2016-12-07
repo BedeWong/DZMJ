@@ -88,6 +88,7 @@ void MJ_XiaJiaWidget::draw_GPC(QPainter &painter)
 
 //    mat.reset();
 //    mat.rotate(270);
+    nextStartPoint -= QPoint(0, 60);
     for(int i=0; i<gpc_count; i++)
     {
         if(gpc_seq[i] == MJ_Base::SEQ_CHI)

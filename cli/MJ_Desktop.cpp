@@ -11,6 +11,10 @@ MJ_Desktop::MJ_Desktop(MJ_Cli::GF_Flag flag, QWidget *parent) :
 {
     ui->setupUi(this);
     this->resize(800, 600);
+    this->setMaximumSize(800, 600);
+    this->setMinimumSize(800, 600);
+    this->setWindowTitle(QString::fromLocal8Bit("道州麻将"));
+    this->setWindowIcon(QIcon(":/fa.png"));
     QDesktopWidget * desktopWidget = QApplication::desktop();
     this->setGeometry((desktopWidget->width()-this->width())/2,
                       (desktopWidget->height()-this->height())/2, this->width(), this->height());
@@ -304,9 +308,7 @@ void MJ_Desktop::resl_Chi(MJ_response &resp)
     this->s_hgpc = true;
     this->s_id   = who;
 
-    /*********
-     *    更新界面
-     */
+    qDebug() << "\t**Chi-" << who << "pai=" << _chi;
 }
 
 void MJ_Desktop::resl_Peng(MJ_response &resp)
@@ -336,9 +338,7 @@ void MJ_Desktop::resl_Peng(MJ_response &resp)
     this->s_hgpc = true;
     this->s_id   = who;
 
-    /*********
-     *    更新界面
-     */
+    qDebug() << "\t**peng" << who << "pai=" << resp.getCard();
 }
 
 void MJ_Desktop::resl_Gang(MJ_response &resp)
@@ -370,9 +370,8 @@ void MJ_Desktop::resl_Gang(MJ_response &resp)
     }
     else
         this->player[who]->Gang(resp.getCard());
-    /*********
-     *    更新界面
-     */
+
+    qDebug() << "\t**gang:" << who << "pai=" << resp.getCard();
 }
 
 void MJ_Desktop::resl_Hu(MJ_response &resp)
@@ -521,6 +520,8 @@ void MJ_Desktop::resl_FaPai(MJ_response &resp)
 
         if(hg_stat != S_None)
         {
+            this->s_stat = S_None;
+            this->s_id = this->ID;
             /***
              *  显示可胡牌，杠牌窗口
              */
@@ -595,14 +596,11 @@ void MJ_Desktop::resl_ChuPai(MJ_response &resp)
             MJ_Base::CARD p[16] = {0};
             MJ_Base::CARD c[16] = {0};
 
-            qDebug() << __FUNCTION__ << __LINE__ << "  ";
             this->self->AnalysisHGPC();
-            qDebug() << this->self->getCanHuList(h, 16);
-            qDebug() << this->self->getCanGangList(g, 16);
-            qDebug() << this->self->getCanPengList(p, 16);
-            qDebug() << this->self->getCanChiList(c, 16);
-
-            qDebug() << __FUNCTION__ << __LINE__ << "  " << h << g << p << c;
+            this->self->getCanHuList(h, 16);
+            this->self->getCanGangList(g, 16);
+            this->self->getCanPengList(p, 16);
+            this->self->getCanChiList(c, 16);
 
             MJ_RequestData req(this->ID);
             req.setType(MJ_RequestData::R_HGPCList);
@@ -610,6 +608,10 @@ void MJ_Desktop::resl_ChuPai(MJ_response &resp)
             this->request->req_send(req);
         }
         this->self_widget->draw_PaiList();
+    }
+    else
+    {
+        this->player[who]->ChuPai(card);
     }
     // 添加到出过的牌 窗口
     this->disCard_Widget[who]->addCard(card);

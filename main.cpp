@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    QFile qss("./DZMJ.qss");
+    QFile qss(":/qss/DZMJ.qss");
     qss.open(QIODevice::ReadOnly);
 
     qss.seek(0);

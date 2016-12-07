@@ -1,0 +1,62 @@
+.QPushButton#DanJi:hover,QPushButton#OnLine:hover{
+	border:2px solid Gainsboro;
+    /*color:white;*/
+}
+
+.QPushButton#DanJi, QPushButton#OnLine{
+    border-radius: 8px;
+    background-color:SandyBrown;
+    font-size:14px;
+ }
+
+QWidget#MJ_Cli{
+    border-radius: 10px;
+    background-image: url(bg.jpg);
+    /*background-color:Wheat;*/
+}
+
+QWidget#MJ_Desktop{
+    border-radius: 10px;
+    background-color:SeaGreen;
+}
+
+QPushButton#StartButton{
+	background-color:MediumAquamarine;
+	border-radius: 8px;
+	width: 60px;
+	height: 40px;
+	font-size:16px;
+	font-weight: bold;
+	/*margin-left: 370px;
+	margin-top: 420px;*/
+}
+
+QPushButton#StartButton:hover{
+	border:2px solid SeaGreen;
+}
+
+/*  胡牌倍数显示窗口 */
+QWidget#gameOverWidget{
+	border: 8px;
+	border-radius: 10px;
+    opacity: 1.0;
+}
+
+QWidget#listView{
+	border: 0px;
+	background-color:Silver;
+}
+
+QPushButton#gameOverOk{
+	color: #ffffff;
+	border:6px solid LightGreen;
+	border-radius: 8px;
+	width: 45px;
+	height: 30px;
+	font-size:12px;
+}
+QPushButton#gameOverOk:hover{
+	border-radius: 8px;
+	border:2px solid LightGreen;
+	font-size:14px;
+}

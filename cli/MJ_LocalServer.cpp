@@ -205,7 +205,7 @@ void MJ_LocalServer::faPai_NoCard()
 
     this->tmChuPai->start(8000);//出牌8秒
 
-    qDebug() << "svr  ::faPai(): id = " << cur_id;
+    qDebug() << "svr  ::faPaiNoCard(): id = " << cur_id;
 }
 
 void MJ_LocalServer::faPai()
@@ -280,7 +280,7 @@ void MJ_LocalServer::resl_chuPai(MJ_RequestData &req)
     resp.setWho(senderID);
     resp.setSendTo(MJ_response::SDT_Broadcast);
     send(resp);
-    qDebug() << "svr ::resl_chuPai SDT_Broadcast ok";
+    qDebug() << "svr ::resl_chuPai SDT_Broadcast ok, card=" << cd;
 
     cur_id = senderID;
     mem_policy[senderID] = P_None;
@@ -655,7 +655,12 @@ void MJ_LocalServer::resl_Cancel(MJ_RequestData &req)
     int senderID = req.getSenderID();
     MJ_Base::CARD cd = req.getCard();
 
-    if(senderID == this->cur_id)    // 如果是玩家不想暗杠，自摸而发来的则忽略
+    if(senderID == this->cur_id)    // 如果是玩家不想暗杠,自摸而发来的则忽略
+    {
+        return;
+    }
+
+    if(this->stat == SVR_normal) // 不是等待状态发来的取消都无效
     {
         return;
     }

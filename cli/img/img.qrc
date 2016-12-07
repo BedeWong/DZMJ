@@ -40,5 +40,6 @@
         <file>xi.png</file>
         <file>xiajia.png</file>
         <file>zhong.png</file>
+        <file>../qss/DZMJ.qss</file>
     </qresource>
 </RCC>

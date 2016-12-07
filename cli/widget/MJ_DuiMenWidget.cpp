@@ -85,6 +85,7 @@ void MJ_DuiMenWidget::draw_GPC(QPainter &painter)
     pCount = this->dataModel->getPeng(peng);
     gCount = this->dataModel->getGang(gang);
 
+    nextStartPoint -= QPoint(60, 0);
     for(int i=0; i<gpc_count; i++)
     {
         if(gpc_seq[i] == MJ_Base::SEQ_CHI)

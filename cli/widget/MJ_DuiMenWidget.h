@@ -31,7 +31,7 @@ public slots:
 
 private:
     enum DisplaySize{
-        DS_Width = 840,    // x
+        DS_Width = 900,    // x
         DS_Height = 100    // y
     };
 
